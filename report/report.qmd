@@ -1,0 +1,81 @@
+---
+title: "Research Outputs in Luxembourg"
+format:
+  typst:
+    toc: true
+    section-numbering: 1.1.a
+---
+
+```{r}
+#| include: false
+library(targets)
+library(tinytable)
+
+tar_load(type_doi_missing)
+```
+
+## Introduction
+
+For this study, data from OpenAlex is used to assemble a comprehensive corpus of
+scientific works affiliated with Luxembourg. OpenAlex is an open, transparent,
+and freely accessible scholarly metadata platform that aggregates detailed
+information on publications, authors, institutions, funding, and collaborations
+across all academic disciplines.
+
+Its inclusive coverage and up-to-date data make OpenAlex an ideal resource for
+evidence-based policy analysis and strategic decision-making in research and
+higher education. By leveraging OpenAlex, this study ensures a broad and
+reliable overview of Luxembourg’s research output, enabling the Ministry of
+Research and Higher Education to accurately assess national strengths,
+collaboration patterns, and areas for future investment.
+
+However, it is important to note that OpenAlex’s coverage, while extensive, is
+not yet fully comprehensive for Luxembourg. Some publications, especially those
+from smaller institutions, less internationally visible disciplines, or
+published in languages other than English may be underrepresented. Given the
+complexity of scholarly publishing and data aggregation, it is difficult to
+precisely identify all gaps or biases in the data. This uncertainty should be
+considered when interpreting the findings and formulating policy
+recommendations.
+
+## Exploring the Data: Understanding Luxembourg’s Research Output in OpenAlex
+
+The scope of this study are the scholarly works from the last 10 years. The
+following table shows the distribution of type of works and whether they have a
+DOI or not:
+
+```{r}
+#| echo: false
+tt(type_doi_missing, caption = "Distribution of types of work and missingness of DOI")
+```
+
+Because the majority of works are articles, this study is going to focus on
+articles only, regardless of wheter they have a DOI or not.
+
+
+
+To provide a solid foundation for analysis, it is crucial first to understand
+the scope and composition of the dataset extracted from OpenAlex. This section
+presents key descriptive statistics that characterize Luxembourg’s scientific
+output captured in the data.
+
+Total Number of Works The dataset includes all documented research works
+affiliated with Luxembourgish institutions or authors over the study period.
+This total volume provides a baseline for assessing the country’s overall
+scientific productivity.
+
+Works by Luxembourg Institutions Breaking down the dataset by institution allows
+us to identify the main contributors within Luxembourg’s research ecosystem.
+This includes major universities, research institutes, and other organizations
+based in the country, highlighting their relative publication activity.
+
+Works with Primary Luxembourgish Authors In addition to institutional
+affiliation, the nationality or primary affiliation of the lead authors provides
+insight into the domestic research capacity. We examine the number and share of
+works where the primary or corresponding author is Luxembourgish, which helps
+distinguish between research led locally versus research involving Luxembourg
+through collaboration.
+
+These basic metrics help frame further analysis, such as collaboration patterns,
+disciplinary strengths, and research impact, by clarifying what the data
+contains and its coverage limits.

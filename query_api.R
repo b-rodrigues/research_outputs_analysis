@@ -13,10 +13,14 @@ luxembourg_works <- oa_fetch(
     "title",
     "publication_date",
     "type",
+    "primary_topic",
     "topics", # The first item in this list is the primary topic
     "keywords",
     "sustainable_development_goals",
     "language",
+    "primary_location",
+    "cited_by_count",
+    "counts_by_year",
     "open_access",
     "authorships"
   )),
@@ -25,4 +29,5 @@ luxembourg_works <- oa_fetch(
   verbose = TRUE
 )
 
-write_csv(luxembourg_works, "dataset/luxembourg_works.csv")
+# Need to save as RDS because of list columns of dfs
+saveRDS(luxembourg_works, "dataset/luxembourg_works.rds")
