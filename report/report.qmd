@@ -12,6 +12,8 @@ library(targets)
 library(tinytable)
 
 tar_load(type_doi_missing)
+tar_load(lu_first_authors)
+tar_load(primary_domain_lu)
 ```
 
 ## Introduction
@@ -46,11 +48,31 @@ DOI or not:
 
 ```{r}
 #| echo: false
-tt(type_doi_missing, caption = "Distribution of types of work and missingness of DOI")
+#| label: tbl-type-doi-missing
+#| tbl-cap: Distribution of types of work and missingness of DOI
+
+tt(type_doi_missing)
 ```
 
 Because the majority of works are articles, this study is going to focus on
 articles only, regardless of wheter they have a DOI or not.
+
+```{r}
+#| echo: false
+#| label: tbl-lu-first-authors
+#| tbl-cap: Number of articles where the first author is LU-affiliated
+
+tt(lu_first_authors)
+```
+
+
+```{r}
+#| echo: false
+#| label: tbl-primary-domain-lu
+#| tbl-cap: Number of articles where the first author is LU-affiliated
+
+tt(primary_domain_lu, caption = "Distribution of primary domains by affiliation")
+```
 
 
 

@@ -25,6 +25,14 @@ get_domain_name <- function(df){
     pull(display_name)
 }
 
+get_subfield_name <- function(df){
+  filter(df, i == 1, type == "subfield") %>%
+    pull(display_name)
+}
+
+safe_get_domain_name <- purrr::possibly(get_domain_name, otherwise = "MISSING-DOMAIN")
+safe_get_subfield_name <- purrr::possibly(get_subfield_name, otherwise = "MISSING-SUBFIELD")
+
 get_first_author_country <- function(df){
   filter(df, author_position == "first") %>%
     pull(affiliations) %>%
@@ -72,16 +80,41 @@ list(
     filter(
       openalex_1,
       type == "article"
+    ) %>%
+    mutate(
+      first_author_country = map(authorships, get_first_author_country),
+      is_lu_first_author = map_lgl(first_author_country, \(x)(grepl("LU", x))),
+      primary_domain_name = map_chr(topics, safe_get_domain_name),
+      primary_subfield_name = map_chr(topics, safe_get_subfield_name)
     )
   ),
 
   tar_target(
     lu_first_authors,
-    dataset %>%
-    mutate(
-      first_author_country = map(authorships, get_first_author_country),
-      is_lu_author = map_lgl(first_author_country, \(x)(grepl("LU", x)))
+    tabyl(
+      dataset,
+      is_lu_first_author
+    ) %>%
+    rename(
+      `LU-affiliated first author` = is_lu_first_author,
+      `Total` = n,
+      `Percentage` = percent
     )
+  ),
+
+  tar_target(
+    primary_domain_lu,
+    tabyl(
+      dataset,
+      primary_domain_name,
+      is_lu_first_author
+    ) %>%
+    rename(
+      `Primary domain name` = primary_domain_name,
+      `Not LU-affiliated first author` = `FALSE`,
+      `LU-affiliated first author` = `TRUE`
+    )
+
   ),
 
   tar_quarto(
