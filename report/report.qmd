@@ -1,15 +1,20 @@
 ---
 title: "Research Outputs in Luxembourg"
 format:
-  typst:
+  html:
     toc: true
-    section-numbering: 1.1.a
+    toc-depth: 3
+    number-sections: true
 ---
 
 ```{r}
 #| include: false
+library(DT)
+library(crosstalk)
+library(dplyr)
+library(plotly)
 library(targets)
-library(tinytable)
+library(tidyr)
 
 tar_load(type_doi_missing)
 tar_load(lu_first_authors)
@@ -27,11 +32,11 @@ across all academic disciplines.
 Its inclusive coverage and up-to-date data make OpenAlex an ideal resource for
 evidence-based policy analysis and strategic decision-making in research and
 higher education. By leveraging OpenAlex, this study ensures a broad and
-reliable overview of Luxembourg’s research output, enabling the Ministry of
+reliable overview of Luxembourg's research output, enabling the Ministry of
 Research and Higher Education to accurately assess national strengths,
 collaboration patterns, and areas for future investment.
 
-However, it is important to note that OpenAlex’s coverage, while extensive, is
+However, it is important to note that OpenAlex's coverage, while extensive, is
 not yet fully comprehensive for Luxembourg. Some publications, especially those
 from smaller institutions, less internationally visible disciplines, or
 published in languages other than English may be underrepresented. Given the
@@ -40,7 +45,7 @@ precisely identify all gaps or biases in the data. This uncertainty should be
 considered when interpreting the findings and formulating policy
 recommendations.
 
-## Exploring the Data: Understanding Luxembourg’s Research Output in OpenAlex
+## Exploring the Data: Understanding Luxembourg's Research Output in OpenAlex
 
 The scope of this study are the scholarly works from the last 10 years. The
 following table shows the distribution of type of works and whether they have a
@@ -51,43 +56,158 @@ DOI or not:
 #| label: tbl-type-doi-missing
 #| tbl-cap: Distribution of types of work and missingness of DOI
 
-tt(type_doi_missing)
+datatable(
+  type_doi_missing,
+  caption = "Distribution of types of work and missingness of DOI",
+  options = list(
+    pageLength = 15,
+    scrollX = TRUE,
+    dom = 'Bfrtip',
+    buttons = c('excel')
+  ),
+  extensions = 'Buttons'
+)
 ```
 
 Because the majority of works are articles, this study is going to focus on
-articles only, regardless of wheter they have a DOI or not.
+articles only, regardless of whether they have a DOI or not.
+
+The table below shows the distribution of articles by whether the first author
+is LU-affiliated or not:
 
 ```{r}
 #| echo: false
 #| label: tbl-lu-first-authors
 #| tbl-cap: Number of articles where the first author is LU-affiliated
 
-tt(lu_first_authors)
+lu_first_authors <- lu_first_authors %>%
+  pivot_wider(names_from = is_lu_first_author, values_from = total) %>%
+  rename(
+  `Publication Year` = publication_year,
+  `Non-LU first author` = `FALSE`,
+  `LU first author` = `TRUE`
+)
+
+lu_first_authors_shared <- SharedData$new(lu_first_authors)
+
+# Year filter widget
+filter_slider(id = "publication_year_filter", label = "Select Year Range:",
+              sharedData = lu_first_authors_shared, column = "Publication Year",
+              step = 1, round = TRUE, width = "100%")
+
+datatable(
+  lu_first_authors_shared,
+  filter = "top",
+  caption = "Number of articles where the first author is LU-affiliated",
+  options = list(
+    pageLength = 10,
+    scrollX = TRUE,
+    dom = 'Bfrtip',
+    buttons = c('excel'),
+    order = list(list(0, 'desc'))
+  ),
+  extensions = 'Buttons'
+) %>%
+  formatStyle(columns = colnames(.), fontsize = '12px')
 ```
 
 
 ```{r}
 #| echo: false
-#| label: tbl-primary-domain-lu
-#| tbl-cap: Number of articles where the first author is LU-affiliated
+#| layout-ncol: 3
 
-tt(primary_domain_lu, caption = "Distribution of primary domains by affiliation")
+primary_domain_lu_shared <- SharedData$new(primary_domain_lu)
+
+filter_select(id = "is_lu_first_author_select", "LU First Author:",
+              primary_domain_lu_shared, group = ~is_lu_first_author,
+              multiple = TRUE)
+
+# Domain filter (multiple selection)
+filter_select(id = "primary_domain_name_select", "Select Domains:",
+              primary_domain_lu_shared, group = ~primary_domain_name,
+              multiple = TRUE)
+```
+
+```{r}
+#| echo: false
+#| fig-height: 6
+#| fig-width: 12
+
+# Create the interactive line plot
+# Create ggplot2 object with custom aesthetics for tooltip
+p <- primary_domain_lu_shared %>%
+  ggplot(aes(x = publication_year, y = total, color = primary_domain_name, group = primary_domain_name, shape = is_lu_first_author,
+             text = paste0("<b>", primary_domain_name, "</b><br>",
+                          "Year: ", publication_year, "<br>",
+                          "Total Publications: ", total, "<br>",
+                          "LU First Author: ", is_lu_first_author))) +
+  geom_line(linewidth = 1.2, alpha = 0.8) +
+  geom_point(size = 2, alpha = 0.9) +
+  theme_minimal() +
+  labs(
+    title = "Luxembourg Research Publications by Domain Over Time",
+    x = "Publication Year",
+    y = "Number of Publications",
+    color = "Research Domain"
+  ) +
+  theme(
+    plot.title = element_text(size = 16, hjust = 0.5),
+    legend.position = "right",
+    legend.title = element_text(size = 11),
+    legend.text = element_text(size = 10),
+    axis.title = element_text(size = 12),
+    panel.grid.major = element_line(color = "lightgray", linewidth = 0.3),
+    panel.grid.minor = element_blank()
+  )
+
+# Convert to plotly with custom tooltip
+ggplotly(p, tooltip = "text") %>%
+  layout(
+    title = list(
+      text = "Luxembourg Research Publications by Domain Over Time",
+      font = list(size = 16)
+    ),
+    xaxis = list(
+      title = "Publication Year",
+      showgrid = TRUE,
+      gridcolor = 'lightgray'
+    ),
+    yaxis = list(
+      title = "Number of Publications",
+      showgrid = TRUE,
+      gridcolor = 'lightgray'
+    ),
+    hovermode = 'closest',
+    showlegend = TRUE,
+    legend = list(
+      orientation = "v",
+      x = 1.02,
+      y = 1,
+      font = list(size = 10)
+    ),
+    margin = list(r = 150)
+  ) %>%
+  config(
+    displayModeBar = TRUE,
+    displaylogo = FALSE,
+    modeBarButtonsToRemove = c('pan2d', 'select2d', 'lasso2d', 'autoScale2d')
+  )
 ```
 
 
 
 To provide a solid foundation for analysis, it is crucial first to understand
 the scope and composition of the dataset extracted from OpenAlex. This section
-presents key descriptive statistics that characterize Luxembourg’s scientific
+presents key descriptive statistics that characterize Luxembourg's scientific
 output captured in the data.
 
 Total Number of Works The dataset includes all documented research works
 affiliated with Luxembourgish institutions or authors over the study period.
-This total volume provides a baseline for assessing the country’s overall
+This total volume provides a baseline for assessing the country's overall
 scientific productivity.
 
 Works by Luxembourg Institutions Breaking down the dataset by institution allows
-us to identify the main contributors within Luxembourg’s research ecosystem.
+us to identify the main contributors within Luxembourg's research ecosystem.
 This includes major universities, research institutes, and other organizations
 based in the country, highlighting their relative publication activity.
 

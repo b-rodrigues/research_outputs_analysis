@@ -5,13 +5,17 @@ let
     inherit (pkgs.rPackages) 
       R_utils
       archive
+      crosstalk
       dplyr
+      DT
       ggplot2
       httr
+	  htmltools
       janitor
       jsonlite
       lubridate
       openalexR
+      plotly
       purrr
       quarto
       readr

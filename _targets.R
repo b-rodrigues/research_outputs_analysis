@@ -91,30 +91,30 @@ list(
 
   tar_target(
     lu_first_authors,
-    tabyl(
-      dataset,
-      is_lu_first_author
-    ) %>%
-    rename(
-      `LU-affiliated first author` = is_lu_first_author,
-      `Total` = n,
-      `Percentage` = percent
-    )
+    dataset %>%
+    group_by(publication_year, is_lu_first_author) %>%
+    summarise(total = n_distinct(doi))
   ),
 
   tar_target(
     primary_domain_lu,
+    dataset %>%
+    group_by(publication_year, primary_domain_name, is_lu_first_author) %>%
+    summarise(total = n_distinct(doi)) 
+    #rename(
+    #  `Primary domain name` = primary_domain_name,
+    #  `Not LU-affiliated first author` = `FALSE`,
+    #  `LU-affiliated first author` = `TRUE`
+    #)
+  ),
+
+  tar_target(
+    primary_subfield_lu,
     tabyl(
       dataset,
-      primary_domain_name,
+      primary_subfield_name,
       is_lu_first_author
-    ) %>%
-    rename(
-      `Primary domain name` = primary_domain_name,
-      `Not LU-affiliated first author` = `FALSE`,
-      `LU-affiliated first author` = `TRUE`
     )
-
   ),
 
   tar_quarto(
