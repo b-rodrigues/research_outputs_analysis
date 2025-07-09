@@ -1,5 +1,6 @@
 _targets
 result
+.direnv
 .envrc
 .git-credentials
 
