@@ -18,6 +18,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          lfs: true
 
       - name: Create this folder to silence warning
         run: mkdir -p ~/.nix-defexpr/channels
@@ -29,6 +31,8 @@ jobs:
             git fetch origin rixpress-runs:rixpress-runs
             if git ls-tree --name-only rixpress-runs | grep -q '^pipeline_outputs.nar$'; then
               git checkout rixpress-runs -- pipeline_outputs.nar
+              # Pull LFS files after checkout
+              git lfs pull
             else
               echo "pipeline_outputs.nar not found in rixpress-runs branch"
             fi
@@ -130,10 +134,21 @@ jobs:
       - name: Copy pipeline_outputs.nar to worktree
         run: cp pipeline_outputs.nar ${{ github.workspace }}/rixpress-runs/
 
-      - name: Commit and push to rixpress-runs branch
+      - name: Setup Git LFS in worktree and commit
         working-directory: ${{ github.workspace }}/rixpress-runs
         run: |
+          # Initialize Git LFS in the worktree
+          git lfs install
+          
+          # Track .nar files with LFS if .gitattributes doesn't exist
+          if [ ! -f .gitattributes ]; then
+            echo "*.nar filter=lfs diff=lfs merge=lfs -text" > .gitattributes
+            git add .gitattributes
+          fi
+          
+          # Add the large file
           git add pipeline_outputs.nar
+          
           if [ -n "$(git status --porcelain)" ]; then
             git commit -m "Update pipeline_outputs.nar"
             git push origin rixpress-runs
