@@ -1,0 +1,12 @@
+Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: research_outputs_analysis
+Upstream-Contact: Bruno Rodrigues <bruno.rodrigues@mesr.etat.lu>
+Source: https://github.com/b-rodrigues/research_outputs_analysis
+
+Files: *
+Copyright: 2025 Bruno Rodrigues
+License: EUPL-1.2
+
+Files: report/*
+Copyright: 2025 Bruno Rodrigues
+License: CC-BY-NC-SA-4.0
