@@ -10,7 +10,7 @@ A reproducible analysis that:
 
 ## Usage
 
-1. Reade the analysis [here]().
+1. Read the analysis [here](https://b-rodrigues.github.io/research_outputs_analysis/).
 
 2. To reproduce locally, first install Nix. [Follow these instructions](https://docs.determinate.systems/).
 
