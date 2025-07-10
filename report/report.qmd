@@ -5,6 +5,7 @@ format:
     toc: true
     toc-depth: 3
     number-sections: true
+    embed-resources: true
 ---
 
 ```{r}
@@ -16,9 +17,9 @@ library(plotly)
 library(rixpress)
 library(tidyr)
 
-rxp_load(type_doi_missing)
-rxp_load(lu_first_authors)
-rxp_load(primary_domain_lu)
+type_doi_missing <- rxp_read("type_doi_missing")
+lu_first_authors <- rxp_read("lu_first_authors")
+primary_domain_lu <- rxp_read("primary_domain_lu")
 ```
 
 ## Introduction
