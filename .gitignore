@@ -5,3 +5,5 @@ result
 .git-credentials
 _rixpress
 pipeline.nix
+report/report.html
+report/report_files
