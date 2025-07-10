@@ -40,10 +40,14 @@ jobs:
         working-directory: ${{ github.workspace }}
         run: |
           mkdir -p _rixpress
-          if [ ! -f _rixpress/pipeline_outputs.nar ]; then
-            mv pipeline_outputs.nar _rixpress/
+          if [ -f pipeline_outputs.nar ]; then
+            if [ ! -f _rixpress/pipeline_outputs.nar ]; then
+              mv pipeline_outputs.nar _rixpress/
+            else
+              echo "_rixpress/pipeline_outputs.nar already exists, not moving pipeline_outputs.nar."
+            fi
           else
-            echo "_rixpress/pipeline_outputs.nar already exists, not moving pipeline_outputs.nar."
+            echo "pipeline_outputs.nar not found, skipping move operation."
           fi
 
       - name: Install Nix
