@@ -38,7 +38,7 @@ rix(
     list(
       package_name = "rixpress",
       repo_url = "https://github.com/b-rodrigues/rixpress",
-      commit = "dfef00af24b43aabbcf26efe61b3fb72d4a89bd9"
+      commit = "fe0a9a2eeede61984845e04c9f7cc7a152e3aebf"
     )
   ),
   system_pkgs = c(
