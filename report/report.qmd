@@ -13,12 +13,12 @@ library(DT)
 library(crosstalk)
 library(dplyr)
 library(plotly)
-library(targets)
+library(rixpress)
 library(tidyr)
 
-tar_load(type_doi_missing)
-tar_load(lu_first_authors)
-tar_load(primary_domain_lu)
+rxp_load(type_doi_missing)
+rxp_load(lu_first_authors)
+rxp_load(primary_domain_lu)
 ```
 
 ## Introduction
