@@ -136,14 +136,22 @@ jobs:
           # Copy pipeline_outputs.nar
           cp pipeline_outputs.nar ${{ github.workspace }}/rixpress-runs/
           
-          # Copy the entire report folder if it exists
+          # Copy the report to docs folder for GitHub Pages
           if [ -d pipeline-output ]; then
-            # Create report directory in worktree
-            mkdir -p ${{ github.workspace }}/rixpress-runs/report
+            # Create docs directory in worktree
+            mkdir -p ${{ github.workspace }}/rixpress-runs/docs
             
-            # Copy the entire pipeline-output folder contents to report folder
-            cp -r pipeline-output/* ${{ github.workspace }}/rixpress-runs/report/
-            echo "Copied report folder to rixpress-runs branch"
+            # Copy index.html to docs folder
+            if [ -f pipeline-output/index.html ]; then
+              cp pipeline-output/index.html ${{ github.workspace }}/rixpress-runs/docs/
+              echo "Copied index.html to docs/ folder for GitHub Pages"
+            else
+              echo "pipeline-output/index.html not found"
+            fi
+            
+            # Copy any other files from pipeline-output to docs (excluding index.html since we already copied it)
+            find pipeline-output -type f ! -name "index.html" -exec cp {} ${{ github.workspace }}/rixpress-runs/docs/ \;
+            echo "Copied additional report files to docs/ folder"
           else
             echo "pipeline-output directory not found, skipping copy"
           fi
@@ -162,12 +170,12 @@ jobs:
           
           # Add the files
           git add pipeline_outputs.nar
-          if [ -d report ]; then
-            git add report/
+          if [ -d docs ]; then
+            git add docs/
           fi
           
           if [ -n "$(git status --porcelain)" ]; then
-            git commit -m "Update pipeline outputs and report"
+            git commit -m "Update pipeline outputs and GitHub Pages docs"
             git push origin rixpress-runs
           else
             echo "No changes to commit"
