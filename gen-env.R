@@ -5,7 +5,7 @@ library(rix)
 
 # Define the execution environment for the pipeline.
 # This includes all necessary R packages, Quarto for rendering,
-# and pulls the latest versions of {rix} and {rixpress} from GitHub.
+# and pulls a pinned version of {rixpress} from GitHub.
 rix(
   date = "2025-07-07",
   r_pkgs = c(
@@ -44,7 +44,8 @@ rix(
   system_pkgs = c(
     "air-formatter",
     "quarto",
-    "typst"
+    "typst",
+    "which"
   ),
   ide = "none",
   project_path = ".",
