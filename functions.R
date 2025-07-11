@@ -24,3 +24,12 @@ get_first_author_country <- function(df) {
     map(bind_rows) %>%
     map(\(x) (pull(x, country_code)))
 }
+
+get_all_authors_country <- function(df) {
+  df %>%
+    pull(affiliations) %>%
+    map(bind_rows) %>%
+    map(\(x) (pull(x, country_code))) %>%
+    unlist() %>%
+    tabyl()
+}
