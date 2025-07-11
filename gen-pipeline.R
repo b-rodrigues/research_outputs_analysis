@@ -44,6 +44,7 @@ list(
     ) %>%
       mutate(
         first_author_country = map(authorships, get_first_author_country),
+        all_authors_countries = map(authorships, get_all_authors_country),
         is_lu_first_author = map_lgl(first_author_country, \(x) {
           (grepl("LU", x))
         }),
@@ -77,6 +78,31 @@ list(
       primary_subfield_name,
       is_lu_first_author
     )
+  ),
+
+  # Country affiliations of co-authors per is_lu_first_author
+  rxp_r(
+    name = country_authors_1,
+    expr = {
+      dataset %>%
+        select(publication_year, is_lu_first_author, all_authors_countries) %>%
+        unnest(cols = c(all_authors_countries)) %>%
+        setNames(c(
+          'publication_year',
+          'is_lu_first_author',
+          'country',
+          'n',
+          'p',
+          'vp'
+        ))
+    }
+  ),
+
+  rxp_r(
+    name = country_authors,
+    expr = country_authors_1 %>%
+      group_by(publication_year, is_lu_first_author, country) %>%
+      summarise(countries = sum(n), .groups = "drop")
   ),
 
   # Render the final Quarto report.
