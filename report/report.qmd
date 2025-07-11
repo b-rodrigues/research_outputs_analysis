@@ -1,5 +1,6 @@
 ---
 title: "Research Publications Affiliated with Luxembourg: A Data-Driven Analysis"
+page-layout: full
 format:
   html:
     toc: true
@@ -112,36 +113,18 @@ datatable(
   formatStyle(columns = colnames(.), fontsize = '12px')
 ```
 
-
-```{r}
-#| echo: false
-#| layout-ncol: 3
-
-primary_domain_lu_shared <- SharedData$new(primary_domain_lu)
-
-filter_select(id = "is_lu_first_author_select", "LU First Author:",
-              primary_domain_lu_shared, group = ~is_lu_first_author,
-              multiple = TRUE)
-
-# Domain filter (multiple selection)
-filter_select(id = "primary_domain_name_select", "Select Domains:",
-              primary_domain_lu_shared, group = ~primary_domain_name,
-              multiple = TRUE)
-```
-
 ```{r}
 #| echo: false
 #| fig-height: 6
 #| fig-width: 12
 
-# Create the interactive line plot
-# Create ggplot2 object with custom aesthetics for tooltip
-p <- primary_domain_lu_shared %>%
-  ggplot(aes(x = publication_year, y = total, color = primary_domain_name, group = primary_domain_name, shape = is_lu_first_author,
-             text = paste0("<b>", primary_domain_name, "</b><br>",
-                          "Year: ", publication_year, "<br>",
-                          "Total Publications: ", total, "<br>",
-                          "LU First Author: ", is_lu_first_author))) +
+primary_domain_lu %>%
+  mutate(is_lu_first_author = ifelse(is_lu_first_author, "LU-affiliated first author", "Non LU-affiliated first author")) %>%  
+  ggplot(aes(
+    x = publication_year,
+    y = total, color = primary_domain_name,
+    group = primary_domain_name,
+  )) +
   geom_line(linewidth = 1.2, alpha = 0.8) +
   geom_point(size = 2, alpha = 0.9) +
   theme_minimal() +
@@ -153,49 +136,16 @@ p <- primary_domain_lu_shared %>%
   ) +
   theme(
     plot.title = element_text(size = 16, hjust = 0.5),
-    legend.position = "right",
+    legend.position = "bottom",
     legend.title = element_text(size = 11),
     legend.text = element_text(size = 10),
     axis.title = element_text(size = 12),
     panel.grid.major = element_line(color = "lightgray", linewidth = 0.3),
     panel.grid.minor = element_blank()
-  )
+  ) +
+  facet_wrap(~is_lu_first_author)
 
-# Convert to plotly with custom tooltip
-ggplotly(p, tooltip = "text") %>%
-  layout(
-    title = list(
-      text = "Luxembourg Research Publications by Domain Over Time",
-      font = list(size = 16)
-    ),
-    xaxis = list(
-      title = "Publication Year",
-      showgrid = TRUE,
-      gridcolor = 'lightgray'
-    ),
-    yaxis = list(
-      title = "Number of Publications",
-      showgrid = TRUE,
-      gridcolor = 'lightgray'
-    ),
-    hovermode = 'closest',
-    showlegend = TRUE,
-    legend = list(
-      orientation = "v",
-      x = 1.02,
-      y = 1,
-      font = list(size = 10)
-    ),
-    margin = list(r = 150)
-  ) %>%
-  config(
-    displayModeBar = TRUE,
-    displaylogo = FALSE,
-    modeBarButtonsToRemove = c('pan2d', 'select2d', 'lasso2d', 'autoScale2d')
-  )
 ```
-
-
 
 To provide a solid foundation for analysis, it is crucial first to understand
 the scope and composition of the dataset extracted from OpenAlex. This section

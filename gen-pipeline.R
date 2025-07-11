@@ -44,7 +44,16 @@ list(
     ) %>%
       mutate(
         first_author_country = map(authorships, get_first_author_country),
-        all_authors_countries = map(authorships, get_all_authors_country),
+        all_authors_countries_distribution = map(
+          authorships,
+          get_all_authors_country,
+          distribution = TRUE
+        ),
+        all_authors_countries_unique = map(
+          authorships,
+          get_all_authors_country,
+          distribution = FALSE
+        ),
         is_lu_first_author = map_lgl(first_author_country, \(x) {
           (grepl("LU", x))
         }),
@@ -85,8 +94,12 @@ list(
     name = country_authors_1,
     expr = {
       dataset %>%
-        select(publication_year, is_lu_first_author, all_authors_countries) %>%
-        unnest(cols = c(all_authors_countries)) %>%
+        select(
+          publication_year,
+          is_lu_first_author,
+          all_authors_countries_distribution
+        ) %>%
+        unnest(cols = c(all_authors_countries_distribution)) %>%
         setNames(c(
           'publication_year',
           'is_lu_first_author',
@@ -99,10 +112,42 @@ list(
   ),
 
   rxp_r(
-    name = country_authors,
+    name = country_authors_distribution,
     expr = country_authors_1 %>%
-      group_by(publication_year, is_lu_first_author, country) %>%
-      summarise(countries = sum(n), .groups = "drop")
+      get_country_groups() %>%
+      group_by(publication_year, is_lu_first_author, country_groups) %>%
+      summarise(total = sum(n), .groups = "drop")
+  ),
+
+  rxp_r(
+    name = country_authors_unique,
+    expr = dataset %>%
+      select(
+        publication_year,
+        is_lu_first_author,
+        all_authors_countries_unique
+      ) %>%
+      unnest(cols = c("all_authors_countries_unique")) %>%
+      filter(!(is_lu_first_author & all_authors_countries_unique == "LU")) %>%
+      rename(country = all_authors_countries_unique) %>%
+      group_by(
+        publication_year,
+        is_lu_first_author,
+        country
+      ) %>%
+      summarise(n = n(), .groups = "drop") %>%
+      get_country_groups() %>%
+      group_by(
+        publication_year,
+        is_lu_first_author,
+        country_groups
+      ) %>%
+      summarise(n = n(), .groups = "drop")
+  ),
+
+  rxp_r(
+    plot_coautors_nat,
+    make_plot_coautors_nat(country_authors_unique)
   ),
 
   # Render the final Quarto report.
