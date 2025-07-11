@@ -15,6 +15,7 @@ rix(
     "dplyr",
     "DT",
     "ggplot2",
+    "forcats",
     "httr",
     "htmltools",
     "janitor",
