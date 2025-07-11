@@ -7,6 +7,7 @@
 #  > "dplyr",
 #  > "DT",
 #  > "ggplot2",
+#  > "ggrepel",
 #  > "forcats",
 #  > "httr",
 #  > "htmltools",
@@ -14,15 +15,11 @@
 #  > "jsonlite",
 #  > "lubridate",
 #  > "openalexR",
-#  > "plotly",
 #  > "purrr",
 #  > "quarto",
 #  > "readr",
 #  > "readxl",
 #  > "rix",
-#  > "tarchetypes",
-#  > "targets",
-#  > "tidyjson",
 #  > "tidyr",
 #  > "tinytable",
 #  > "xml2"),
@@ -33,9 +30,9 @@
 #  > git_pkgs = list(list(package_name = "rixpress",
 #  > repo_url = "https://github.com/b-rodrigues/rixpress",
 #  > commit = "fe0a9a2eeede61984845e04c9f7cc7a152e3aebf")),
-#  >      ide = "none",
+#  > ide = "none",
 #  > project_path = ".",
-#  > overwrite = TRUE,
+#  >      overwrite = TRUE,
 #  > r_ver = "4.5.1")
 # It uses the `rstats-on-nix` fork of `nixpkgs` which provides improved
 # compatibility with older R versions and R packages for Linux/WSL and
@@ -52,22 +49,19 @@ let
       DT
       forcats
       ggplot2
+      ggrepel
       htmltools
       httr
       janitor
       jsonlite
       lubridate
       openalexR
-      plotly
       purrr
       quarto
       R_utils
       readr
       readxl
       rix
-      tarchetypes
-      targets
-      tidyjson
       tidyr
       tinytable
       xml2;

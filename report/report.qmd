@@ -14,44 +14,47 @@ format:
 library(DT)
 library(crosstalk)
 library(dplyr)
-library(plotly)
+library(ggplot2)
 library(rixpress)
 library(tidyr)
 
 rxp_load("type_doi_missing")
 rxp_load("lu_first_authors")
 rxp_load("primary_domain_lu")
+rxp_load("country_authors_unique")
 ```
 
 ## Introduction
 
-For this study, data from OpenAlex is used to assemble a comprehensive corpus of
-scientific works affiliated with Luxembourg. OpenAlex is an open, transparent,
-and freely accessible scholarly metadata platform that aggregates detailed
-information on publications, authors, institutions, funding, and collaborations
+This report presents a comprehensive analysis of Luxembourg's research
+publication landscape using data extracted from OpenAlex, an open-access
+scholarly metadata platform. OpenAlex serves as a freely accessible alternative
+to proprietary academic databases, providing structured information about
+publications, authors, institutional affiliations, and research collaborations
 across all academic disciplines.
 
-Its inclusive coverage and up-to-date data make OpenAlex an ideal resource for
-evidence-based policy analysis and strategic decision-making in research and
-higher education. By leveraging OpenAlex, this study ensures a broad and
-reliable overview of Luxembourg's research output, enabling the Ministry of
-Research and Higher Education to accurately assess national strengths,
-collaboration patterns, and areas for future investment.
+The data collection methodology focuses on identifying all scholarly works with
+Luxembourg institutional affiliations recorded in OpenAlex over the past decade.
+This approach captures both research led by Luxembourg-based scholars and
+international collaborative projects where Luxembourg institutions participate
+as co-authors. The temporal scope provides a current snapshot of the country's
+scientific output and evolving research partnerships.
 
-However, it is important to note that OpenAlex's coverage, while extensive, is
-not yet fully comprehensive for Luxembourg. Some publications, especially those
-from smaller institutions, less internationally visible disciplines, or
-published in languages other than English may be underrepresented. Given the
-complexity of scholarly publishing and data aggregation, it is difficult to
-precisely identify all gaps or biases in the data. This uncertainty should be
-considered when interpreting the findings and formulating policy
-recommendations.
+OpenAlex aggregates metadata from multiple sources including institutional
+repositories, publisher databases, and citation networks. While this
+multi-source approach enhances coverage comprehensiveness, data quality depends
+on the accuracy of source reporting and the platform's ability to correctly
+identify and link Luxembourg-affiliated works. These methodological
+considerations should be kept in mind when interpreting the analytical findings
+presented throughout this report.
 
-## Exploring the Data: Understanding Luxembourg's Research Output in OpenAlex
+## Data Structure and Document Types
 
-The scope of this study are the scholarly works from the last 10 years. The
-following table shows the distribution of type of works and whether they have a
-DOI or not:
+The initial dataset encompasses all document types recorded in OpenAlex for
+Luxembourg-affiliated scholarly works during the study period. The following
+table displays the distribution of work types and the presence of Digital Object
+Identifiers (DOIs), which serve as persistent identifiers linking to original
+publications:
 
 ```{r}
 #| echo: false
@@ -71,11 +74,13 @@ datatable(
 )
 ```
 
-Because the majority of works are articles, this study is going to focus on
-articles only, regardless of whether they have a DOI or not.
+Based on the substantial predominance of journal articles in the dataset and
+their central importance in academic research communication, this analysis
+restricts its focus to articles exclusively. This selection encompasses both
+publications with DOI identifiers and those without, ensuring comprehensive
+coverage of Luxembourg's peer-reviewed research output.
 
-The table below shows the distribution of articles by whether the first author
-is LU-affiliated or not:
+The analytical framework employs a critical distinction based on first authorship status: whether the primary author maintains affiliation with a Luxembourg institution or represents an international collaboration where Luxembourg institutions participate as secondary contributors. This classification enables differentiation between research leadership and research participation within the national research ecosystem:
 
 ```{r}
 #| echo: false
@@ -113,62 +118,142 @@ datatable(
   formatStyle(columns = colnames(.), fontsize = '12px')
 ```
 
+## Research Domain Analysis
+
+The following visualization examines the temporal distribution of
+Luxembourg-affiliated research across major scientific domains. The data
+utilizes OpenAlex's domain classification system, which categorizes research
+fields into broad disciplinary areas. The analysis tracks publication volumes
+over time while maintaining the distinction between Luxembourg-led research
+(first author affiliation) and collaborative research (non-first author
+participation):
+
 ```{r}
 #| echo: false
 #| fig-height: 6
 #| fig-width: 12
 
+domain_colors <- c(
+  # Add your actual domain names here with distinctive colors
+  "Health Sciences" = "#FF6B35",        # Orange-red
+  "Life Sciences" = "#003399",      # Deep blue
+  "MISSING-DOMAIN" = "#228B22",   # Forest green
+  "Physical Sciences" = "#FF1493",  # Deep pink
+  "Social Sciences" = "#800080"    # Purple
+)
+
 primary_domain_lu %>%
   mutate(is_lu_first_author = ifelse(is_lu_first_author, "LU-affiliated first author", "Non LU-affiliated first author")) %>%  
   ggplot(aes(
     x = publication_year,
-    y = total, color = primary_domain_name,
+    y = total, 
+    color = primary_domain_name,
     group = primary_domain_name,
   )) +
   geom_line(linewidth = 1.2, alpha = 0.8) +
   geom_point(size = 2, alpha = 0.9) +
-  theme_minimal() +
+  scale_color_manual(values = domain_colors) +
+  facet_wrap(
+    ~is_lu_first_author,
+    labeller = labeller(
+      is_lu_first_author = c(
+        "LU-affiliated first author" = "LU-affiliated first author",
+        "Non LU-affiliated first author" = "Non LU-affiliated first author"
+      )
+    )
+  ) +
   labs(
     title = "Luxembourg Research Publications by Domain Over Time",
+    subtitle = "Faceted by Luxembourg First Author Status",
     x = "Publication Year",
     y = "Number of Publications",
     color = "Research Domain"
   ) +
+  theme_minimal() +
   theme(
-    plot.title = element_text(size = 16, hjust = 0.5),
+    axis.text.x = element_text(size = 10),
+    plot.title = element_text(size = 14, face = "bold"),
+    plot.subtitle = element_text(size = 12),
     legend.position = "bottom",
-    legend.title = element_text(size = 11),
-    legend.text = element_text(size = 10),
+    legend.title = element_text(face = "bold"),
+    strip.text = element_text(face = "bold", size = 11),
+    strip.background = element_rect(fill = "lightgray", color = "black"),
     axis.title = element_text(size = 12),
     panel.grid.major = element_line(color = "lightgray", linewidth = 0.3),
     panel.grid.minor = element_blank()
   ) +
-  facet_wrap(~is_lu_first_author)
+  # Adjust legend to show in multiple rows if needed
+  guides(color = guide_legend(nrow = 2, byrow = TRUE))
 
 ```
 
-To provide a solid foundation for analysis, it is crucial first to understand
-the scope and composition of the dataset extracted from OpenAlex. This section
-presents key descriptive statistics that characterize Luxembourg's scientific
-output captured in the data.
+## International Collaboration Patterns
 
-Total Number of Works The dataset includes all documented research works
-affiliated with Luxembourgish institutions or authors over the study period.
-This total volume provides a baseline for assessing the country's overall
-scientific productivity.
+The analysis extends to examining Luxembourg's research collaboration patterns
+with international partners. The dataset contains information about co-author
+affiliations, enabling identification of the most frequent collaborating
+countries and regions. This section presents the geographical distribution of
+research partnerships, organized by publication year and distinguished by
+Luxembourg's role as lead author versus collaborative partner.
 
-Works by Luxembourg Institutions Breaking down the dataset by institution allows
-us to identify the main contributors within Luxembourg's research ecosystem.
-This includes major universities, research institutes, and other organizations
-based in the country, highlighting their relative publication activity.
+The data processing groups countries into meaningful categories, including major
+individual nations, regional blocs, and an aggregated "Others" category for
+countries with lower collaboration frequencies. This approach provides clarity
+while maintaining analytical depth regarding Luxembourg's primary research
+partnerships:
 
-Works with Primary Luxembourgish Authors In addition to institutional
-affiliation, the nationality or primary affiliation of the lead authors provides
-insight into the domestic research capacity. We examine the number and share of
-works where the primary or corresponding author is Luxembourgish, which helps
-distinguish between research led locally versus research involving Luxembourg
-through collaboration.
+```{r}
+#| echo: false
+#| warning: false
+#| fig-height: 14
+#| fig-width: 12
 
-These basic metrics help frame further analysis, such as collaboration patterns,
-disciplinary strengths, and research impact, by clarifying what the data
-contains and its coverage limits.
+country_colors <- c(
+  "European Union" = "#003399", # Deep blue (EU flag)
+  "Others" = "#FF1493", # Deep pink
+  "Luxembourg" = "#FF6B35", # Orange-red
+  "France" = "#800080", # Purple
+  "USA" = "#228B22", # Forest green
+  "Belgium" = "#FFD700", # Gold
+  "China" = "#DE2910", # Red
+  "Great Britain" = "#C8102E", # British red (Union Jack)
+  "Italy" = "#009246", # Italian green (flag)
+  "Spain" = "#AA151B", # Spanish red (flag)
+  "Switzerland" = "#FF0000", # Swiss red (flag)
+  "Netherlands" = "#FF7F00"  # Dutch orange (national color)
+)
+
+# Plot for publication with co-authors
+ggplot(country_authors_unique, aes(x = publication_year, y = n, fill = country_groups)) +
+  geom_col(position = "dodge", color = "black", size = 0.5) + # Dodge bars for multiple countries per year
+  scale_fill_manual(values = country_colors) +
+  facet_wrap(
+    ~is_lu_first_author,
+    ncol = 1,
+    labeller = labeller(
+      is_lu_first_author = c(
+        "FALSE" = "LU Not First Author",
+        "TRUE" = "LU First Author"
+      )
+    )
+  ) +
+  labs(
+    title = "Publications by Country/Region Over Time",
+    subtitle = "Faceted by Luxembourg First Author Status",
+    x = "Publication Year",
+    y = "Total Publications",
+    fill = "Country/Region"
+  ) +
+  theme_minimal() +
+  theme(
+    axis.text.x = element_text(size = 10),
+    plot.title = element_text(size = 14, face = "bold"),
+    plot.subtitle = element_text(size = 12),
+    legend.position = "bottom",
+    legend.title = element_text(face = "bold"),
+    strip.text = element_text(face = "bold", size = 11),
+    strip.background = element_rect(fill = "lightgray", color = "black")
+  ) +
+  # Adjust legend to show in multiple rows if needed
+  guides(fill = guide_legend(nrow = 2, byrow = TRUE))
+```

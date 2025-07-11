@@ -142,12 +142,8 @@ list(
         is_lu_first_author,
         country_groups
       ) %>%
-      summarise(n = n(), .groups = "drop")
-  ),
-
-  rxp_r(
-    plot_coautors_nat,
-    make_plot_coautors_nat(country_authors_unique)
+      summarise(n = sum(n), .groups = "drop") %>%
+      mutate(country_groups = fct_reorder(country_groups, desc(n)))
   ),
 
   # Render the final Quarto report.
