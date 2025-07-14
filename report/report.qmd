@@ -215,7 +215,6 @@ domain_colors = new Map([
 ])
 
 // Get unique values for controls
-unique_years = [...new Set(data.map(d => d.publication_year))].sort()
 unique_domains = [...new Set(data.map(d => d.primary_domain_name))].sort()
 
 html`<div style="margin-top: 20px; padding: 15px;">
@@ -414,7 +413,7 @@ while maintaining analytical depth regarding Luxembourg's primary research
 partnerships:
 
 ```{r}
-#| echo: false
+#| include: false
 #| warning: false
 #| fig-height: 14
 #| fig-width: 12
@@ -467,4 +466,175 @@ ggplot(country_authors_unique, aes(x = publication_year, y = n, fill = country_g
   ) +
   # Adjust legend to show in multiple rows if needed
   guides(fill = guide_legend(nrow = 2, byrow = TRUE))
+```
+
+
+```{r}
+#| echo: false
+ojs_define(country_authors_unique_ojs = country_authors_unique)
+```
+
+```{ojs}
+//| echo: false
+
+// Convert R data to JavaScript format
+raw_country_data = transpose(country_authors_unique_ojs)
+
+// Convert data types to ensure Observable Plot can use them
+country_data = raw_country_data.map(d => ({
+  publication_year: +d.publication_year,
+  is_lu_first_author: d.is_lu_first_author === "TRUE" || d.is_lu_first_author === true,
+  country_groups: d.country_groups,
+  n: +d.n
+}))
+
+// Create color mapping for countries
+country_colors = new Map([
+  ["European Union", "#003399"],
+  ["Others", "#FF1493"],
+  ["Luxembourg", "#FF6B35"],
+  ["France", "#800080"],
+  ["USA", "#228B22"],
+  ["Belgium", "#FFD700"],
+  ["China", "#DE2910"],
+  ["Great Britain", "#C8102E"],
+  ["Italy", "#009246"],
+  ["Spain", "#AA151B"],
+  ["Switzerland", "#FF0000"],
+  ["Netherlands", "#FF7F00"]
+])
+
+// Get unique values for controls
+unique_years = [...new Set(country_data.map(d => d.publication_year))].sort()
+unique_countries = [...new Set(country_data.map(d => d.country_groups))].sort()
+
+html`<div style="margin-top: 20px; padding: 15px;">
+  <h4 style="margin-top: 0; margin-bottom: 15px;">Inputs:</h4>
+  <label style="font-size: 16px; color: #333;">Select year range:</label>
+</div>`
+
+viewof country_year_range = rangeInput({
+  min: 2015,
+  max: 2025,
+  value: [2022, 2025],
+  step: 1
+})
+
+viewof selected_countries = Inputs.checkbox(
+  unique_countries,
+  {
+    value: unique_countries,
+    label: "Countries/Regions"
+  }
+)
+
+viewof country_author_type = Inputs.radio(
+  ["LU-affiliated first author", "Non LU-affiliated first author", "Both"],
+  {
+    value: "Both",
+    label: "First Author Affiliation"
+  }
+)
+
+// Filter data based on selections
+filtered_country_data = country_data.filter(d => {
+  // Year filter
+  const yearOk = d.publication_year >= country_year_range[0] && d.publication_year <= country_year_range[1];
+  
+  // Country filter
+  const countryOk = selected_countries.includes(d.country_groups);
+  
+  // Author filter
+  let authorOk = false;
+  if (country_author_type === "Both") {
+    authorOk = true;
+  } else if (country_author_type === "LU-affiliated first author") {
+    authorOk = d.is_lu_first_author === true;
+  } else if (country_author_type === "Non LU-affiliated first author") {
+    authorOk = d.is_lu_first_author === false;
+  }
+  
+  return yearOk && countryOk && authorOk;
+})
+
+// Get years present in filtered data for x-axis
+years_present = [...new Set(filtered_country_data.map(d => d.publication_year))].sort()
+
+// Legend for countries
+html`
+<div style="margin-top: 20px; padding: 15px;">
+  <h4 style="margin-top: 0; margin-bottom: 15px;">Legend:</h4>
+  
+  <div style="margin-bottom: 15px;">
+    <h5 style="margin: 0 0 10px 0;">Countries/Regions:</h5>
+    <div style="display: flex; flex-wrap: wrap; gap: 15px;">
+      ${unique_countries.map(country => `
+        <div style="display: flex; align-items: center; gap: 6px;">
+          <div style="width: 16px; height: 16px; background-color: ${country_colors.get(country)}; border: 1px solid black; border-radius: 2px;"></div>
+          <span style="font-size: 14px;">${country}</span>
+        </div>
+      `).join('')}
+    </div>
+  </div>
+</div>
+`
+
+// Create faceted grouped bar chart - using fx for grouping and fy for LU status
+Plot.plot({
+  width: 900,
+  height: 600,
+  marginLeft: 80,
+  marginBottom: 80,
+  marginRight: 40,
+  x: {
+    label: null,
+    axis: null,
+    paddingOuter: 0.2
+  },
+  y: {
+    label: "Total Publications",
+    grid: true
+  },
+  fx: {
+    label: "Publication Year",
+    tickFormat: "d"
+  },
+  fy: {
+    label: null,
+    tickFormat: d => d ? "LU First Author" : "LU Not First Author"
+  },
+  color: {
+    domain: unique_countries,
+    range: unique_countries.map(d => country_colors.get(d)),
+    legend: false
+  },
+  facet: {
+    data: filtered_country_data,
+    x: "publication_year",
+    y: "is_lu_first_author",
+    marginTop: 40
+  },
+  marks: [
+    Plot.barY(filtered_country_data, Plot.groupX(
+      {y: "sum"}, 
+      {
+        x: "country_groups",
+        y: "n",
+        fill: "country_groups",
+        stroke: "black",
+        strokeWidth: 0.5,
+        tip: true,
+        title: d => `${d.country_groups}\n${d.publication_year}\nPublications: ${d.n}\nLU First Author: ${d.is_lu_first_author ? "Yes" : "No"}`
+      }
+    )),
+    Plot.frame({stroke: "black", strokeWidth: 1})
+  ],
+  style: {
+    fontSize: "12px"
+  },
+  title: "Publications by Country/Region Over Time (Faceted by Luxembourg First Author Status)"
+})
+
+
+
 ```
