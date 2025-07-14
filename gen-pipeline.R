@@ -81,12 +81,47 @@ list(
 
   # Create a table of primary subfields by LU-affiliated first-author status.
   rxp_r(
+    name = primary_subfield_lu_raw,
+    expr = dataset %>%
+      group_by(publication_year, primary_subfield_name, is_lu_first_author) %>%
+      summarise(total = n_distinct(doi), .groups = 'drop') %>%
+      arrange(desc(total))
+  ),
+
+  rxp_r(
+    name = top_lu_subfields,
+    expr = primary_subfield_lu_raw %>%
+      filter(
+        is_lu_first_author,
+        publication_year == 2024
+      ) %>%
+      arrange(desc(total)) %>%
+      head(10) %>%
+      pull(primary_subfield_name)
+  ),
+
+  rxp_r(
+    name = top_non_lu_subfields,
+    expr = primary_subfield_lu_raw %>%
+      filter(
+        !is_lu_first_author,
+        publication_year == 2024
+      ) %>%
+      arrange(desc(total)) %>%
+      head(10) %>%
+      pull(primary_subfield_name)
+  ),
+
+  rxp_r(
+    name = top_subfields,
+    expr = unique(c(top_lu_subfields, top_non_lu_subfields))
+  ),
+
+  rxp_r(
     name = primary_subfield_lu,
-    expr = tabyl(
-      dataset,
-      primary_subfield_name,
-      is_lu_first_author
-    )
+    expr = primary_subfield_lu_raw %>%
+      filter(primary_subfield_name %in% top_subfields) %>%
+      arrange(desc(publication_year))
   ),
 
   # Country affiliations of co-authors per is_lu_first_author

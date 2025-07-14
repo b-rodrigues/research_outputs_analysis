@@ -11,9 +11,11 @@ library(ggplot2)
 library(rixpress)
 library(tidyr)
 
+# Load data
 rxp_load("type_doi_missing")
 rxp_load("lu_first_authors")
 rxp_load("primary_domain_lu")
+rxp_load("primary_subfield_lu")
 rxp_load("country_authors_unique")
 ```
 
@@ -375,20 +377,31 @@ Plot.plot({
       }))
     ] : []),
     // Enhanced tooltips
-    Plot.tip(filtered_data, selected_author_type === "Both" ? 
-      Plot.pointerX({
-        x: "publication_year",
-        fill: "primary_domain_name",
-        title: d => `${d.primary_domain_name}\n${d.publication_year}\nPublications: ${d.total}\nLU First Author: ${d.is_lu_first_author ? "Yes" : "No"}`,
-        fontSize: 12
-      }) : 
-      Plot.pointer({
-        x: "publication_year",
-        y: "total",
-        fill: "primary_domain_name",
-        title: d => `${d.primary_domain_name}\n${d.publication_year}\nPublications: ${d.total}\nLU First Author: ${d.is_lu_first_author ? "Yes" : "No"}`
-      })
-    )
+Plot.tip(filtered_data, selected_author_type === "Both" ? 
+  Plot.pointerX({
+    x: "publication_year",
+    title: (d, i, data) => {
+      // Group all data points by year for this x-position
+      const year = d.publication_year;
+      const allPointsAtYear = data.filter(point => point.publication_year === year);
+      
+      // Create title showing all domains and their values at this year
+      const yearTitle = `Year: ${year}\n${'-'.repeat(20)}\n`;
+      const entries = allPointsAtYear.map(point => 
+        `${point.primary_domain_name}: ${point.total} (${point.is_lu_first_author ? 'LU' : 'Non-LU'})`
+      ).join('\n');
+      
+      return yearTitle + entries;
+    },
+    fontSize: 12
+  }) : 
+  Plot.pointer({
+    x: "publication_year",
+    y: "total",
+    fill: "primary_domain_name",
+    title: d => `${d.primary_domain_name}\n${d.publication_year}\nPublications: ${d.total}\nLU First Author: ${d.is_lu_first_author ? "Yes" : "No"}`
+  })
+)
   ],
   title: "Luxembourg Research Publications by Domain Over Time"
 })
@@ -396,6 +409,233 @@ Plot.plot({
 
 
 ```
+
+The graph below should the top 10 subfields:
+
+```{r}
+#| echo: false
+ojs_define(primary_subfield_lu_ojs = primary_subfield_lu)
+```
+
+```{ojs}
+//| echo: false
+
+// Convert R data to JavaScript format
+raw_data_subfield = transpose(primary_subfield_lu_ojs)
+
+// Convert data types to ensure Observable Plot can use them
+data_subfield = raw_data_subfield.map(d => ({
+  publication_year: +d.publication_year,  // Convert to number
+  primary_subfield_name: d.primary_subfield_name,
+  total: +d.total,  // Convert to number
+  is_lu_first_author: d.is_lu_first_author === "TRUE" || d.is_lu_first_author === true  // Convert to boolean
+}))
+
+// Create color mapping for your actual subfields
+subfield_colors = new Map([
+  ["Aerospace Engineering", "#FF6B35"],           // Orange-red
+  ["Artificial Intelligence", "#003399"],        // Deep blue
+  ["Computer Networks and Communications", "#228B22"], // Forest green
+  ["Computer Vision and Pattern Recognition", "#FF1493"], // Deep pink
+  ["Economics and Econometrics", "#800080"],     // Purple
+  ["Electrical and Electronic Engineering", "#FFD700"], // Gold
+  ["Information Systems", "#DE2910"],            // Red
+  ["Materials Chemistry", "#C8102E"],            // Crimson
+  ["Molecular Biology", "#009246"],              // Green
+  ["Neurology", "#AA151B"],                      // Dark red
+  ["Political Science and International Relations", "#FF7F00"], // Orange
+  ["Pulmonary and Respiratory Medicine", "#4B0082"], // Indigo
+  ["Sociology and Political Science", "#8B4513"] // Saddle brown
+])
+
+// Get unique values for controls
+unique_subfields = [...new Set(data_subfield.map(d => d.primary_subfield_name))].sort()
+
+html`<div style="margin-top: 20px; padding: 15px;">
+  <h4 style="margin-top: 0; margin-bottom: 15px;">Inputs:</h4>
+  <label style="font-size: 16px; color: #333;">Select year range:</label>
+</div>`
+
+viewof year_range_subfield = rangeInput({
+  min: 2015,
+  max: 2025,
+  value: [2015, 2025],
+  step: 1
+})
+
+viewof selected_subfields = Inputs.checkbox(
+  unique_subfields,
+  {
+    value: ["Artificial Intelligence", "Computer Vision and Pattern Recognition", "Neurology"],
+    label: "Research Subfields"
+  }
+)
+
+viewof selected_author_type_subfield = Inputs.radio(
+  ["LU-affiliated first author", "Non LU-affiliated first author", "Both"],
+  {
+    value: "Both",
+    label: "First Author Affiliation"
+  }
+)
+
+// Filter data based on selections
+filtered_data_subfield = data_subfield.filter(d => {
+  // Year filter
+  const yearOk = d.publication_year >= year_range_subfield[0] && d.publication_year <= year_range_subfield[1];
+  
+  // Subfield filter
+  const subfieldOk = selected_subfields.includes(d.primary_subfield_name);
+  
+  // Author filter
+  let authorOk = false;
+  if (selected_author_type_subfield === "Both") {
+    authorOk = true;
+  } else if (selected_author_type_subfield === "LU-affiliated first author") {
+    authorOk = d.is_lu_first_author === true;
+  } else if (selected_author_type_subfield === "Non LU-affiliated first author") {
+    authorOk = d.is_lu_first_author === false;
+  }
+  
+  return yearOk && subfieldOk && authorOk;
+})
+
+// Combined HTML legend with subfield colors and author types
+html`
+<div style="margin-top: 20px; padding: 15px;">
+  <h4 style="margin-top: 0; margin-bottom: 15px;">Legend:</h4>
+  
+  <!-- Subfield Colors -->
+  <div style="margin-bottom: 15px;">
+    <h5 style="margin: 0 0 10px 0;">Research Subfields:</h5>
+    <div style="display: flex; flex-wrap: wrap; gap: 15px;">
+      ${unique_subfields.map(subfield => `
+        <div style="display: flex; align-items: center; gap: 6px;">
+          <div style="width: 16px; height: 16px; background-color: ${subfield_colors.get(subfield) || '#888'}; border-radius: 2px;"></div>
+          <span style="font-size: 14px;">${subfield}</span>
+        </div>
+      `).join('')}
+    </div>
+  </div>
+  
+  <!-- Author Types -->
+  <div>
+    <h5 style="margin: 0 0 10px 0;">Author Types:</h5>
+    <div style="display: flex; gap: 30px; align-items: center; flex-wrap: wrap;">
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <svg width="30" height="20">
+          <line x1="0" y1="10" x2="30" y2="10" stroke="#333" stroke-width="2.5" />
+          <circle cx="15" cy="10" r="4" fill="#333" stroke="white" stroke-width="1"/>
+        </svg>
+        <span><strong>LU-affiliated first author</strong> (solid line + circle)</span>
+      </div>
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <svg width="30" height="20">
+          <line x1="0" y1="10" x2="30" y2="10" stroke="#333" stroke-width="2.5" stroke-dasharray="8,8"/>
+          <polygon points="15,6 19,14 11,14" fill="#333" stroke="white" stroke-width="1"/>
+        </svg>
+        <span><strong>Non-LU-affiliated first author</strong> (dashed line + triangle)</span>
+      </div>
+    </div>
+  </div>
+</div>
+`
+
+// Create the plot with integer-only year ticks
+Plot.plot({
+  width: 800,
+  height: 500,
+  marginLeft: 60,
+  marginBottom: 60,
+  x: {
+    label: "Publication Year",
+    domain: [Math.min(...filtered_data_subfield.map(d => d.publication_year)), 
+               Math.max(...filtered_data_subfield.map(d => d.publication_year))],
+    tickFormat: "d",
+    ticks: d3.range(
+      Math.min(...filtered_data_subfield.map(d => d.publication_year)),
+      Math.max(...filtered_data_subfield.map(d => d.publication_year)) + 1
+    )
+  },
+  y: {
+    label: "Number of Publications",
+    grid: true
+  },
+  color: {
+    domain: unique_subfields,
+    range: unique_subfields.map(d => subfield_colors.get(d) || '#888'),
+    legend: false
+  },
+  marks: [
+    // Solid lines for LU-affiliated authors
+    Plot.line(filtered_data_subfield.filter(d => d.is_lu_first_author === true), {
+      x: "publication_year",
+      y: "total",
+      stroke: "primary_subfield_name",
+      strokeWidth: 2.5,
+      z: d => `${d.primary_subfield_name}-LU`
+    }),
+    // Dashed lines for non-LU-affiliated authors
+    Plot.line(filtered_data_subfield.filter(d => d.is_lu_first_author === false), {
+      x: "publication_year",
+      y: "total",
+      stroke: "primary_subfield_name",
+      strokeWidth: 2.5,
+      strokeDasharray: "8,8",
+      z: d => `${d.primary_subfield_name}-NonLU`
+    }),
+    // Points with different symbols
+    Plot.dot(filtered_data_subfield, {
+      x: "publication_year",
+      y: "total",
+      fill: "primary_subfield_name",
+      symbol: d => d.is_lu_first_author ? "circle" : "triangle",
+      r: 5,
+      stroke: "white",
+      strokeWidth: 1
+    }),
+    // Vertical line rule (only when "Both" is selected)
+    ...(selected_author_type_subfield === "Both" ? [
+      Plot.ruleX(filtered_data_subfield, Plot.pointerX({
+        x: "publication_year",
+        stroke: "gray",
+        strokeWidth: 1,
+        strokeDasharray: "3,3",
+        opacity: 0.7
+      }))
+    ] : []),
+    // Enhanced tooltips
+        Plot.tip(filtered_data_subfield, selected_author_type_subfield === "Both" ? 
+      Plot.pointerX({
+        x: "publication_year",
+        title: (d, i, data) => {
+          // Group all data points by year for this x-position
+          const year = d.publication_year;
+          const allPointsAtYear = data.filter(point => point.publication_year === year);
+          // Create title showing all subfields and their values at this year
+          const yearTitle = `Year: ${year}\n${'-'.repeat(20)}\n`;
+          const entries = allPointsAtYear.map(point => 
+            `${point.primary_subfield_name}: ${point.total} (${point.is_lu_first_author ? 'LU' : 'Non-LU'})`
+          ).join('\n');
+          return yearTitle + entries;
+        },
+        fontSize: 12
+      }) : 
+      Plot.pointer({
+        x: "publication_year",
+        y: "total",
+        fill: "primary_subfield_name",
+        title: d => `${d.primary_subfield_name}\n${d.publication_year}\nPublications: ${d.total}\nLU First Author: ${d.is_lu_first_author ? "Yes" : "No"}`
+      })
+    )
+  ],
+  title: "Luxembourg Research Publications by Subfield Over Time"
+})
+
+```
+
+
+
 
 ## International Collaboration Patterns
 
