@@ -96,6 +96,11 @@ jobs:
         run: |
           nix-shell --quiet --run "Rscript -e 'rixpress::rxp_make()'"
 
+      - name: Publish to GitHub Pages (and render)
+        uses: b-rodrigues/quarto-nix-actions/publish@main
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} 
+
       - name: Inspect built derivations
         run: |
           nix-shell --quiet --run "Rscript -e 'rixpress::rxp_inspect()'"
@@ -103,13 +108,6 @@ jobs:
       - name: Export outputs to avoid rebuild
         run: |
           nix-shell --quiet --run "Rscript -e 'rixpress::export_nix_archive(archive_file = \"pipeline_outputs.nar\")'"
-
-      - name: Copy report to repo
-        run: |
-          nix-shell --quiet --run "Rscript -e 'rixpress::rxp_copy(\"report\")'"
-
-      - name: Rename report.html to index.html
-        run: mv pipeline-output/report.html pipeline-output/index.html
 
       - name: Set git config
         run: |
