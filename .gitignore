@@ -1,0 +1,11 @@
+_targets
+result
+.direnv
+.envrc
+.git-credentials
+_rixpress
+pipeline.nix
+report/report.html
+report/report_files
+
+/.quarto/
