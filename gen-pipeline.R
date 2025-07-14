@@ -71,6 +71,19 @@ list(
       summarise(total = n_distinct(doi), .groups = 'drop')
   ),
 
+  # Summarize the count of articles by publication year and LU-first-author status.
+  rxp_r(
+    name = languages,
+    expr = dataset %>%
+      group_by(
+        publication_year,
+        is_lu_first_author,
+        primary_domain_name,
+        language
+      ) %>%
+      summarise(total = n_distinct(doi), .groups = 'drop')
+  ),
+
   # Summarize by primary domain and LU-affiliated first authors.
   rxp_r(
     name = primary_domain_lu,
