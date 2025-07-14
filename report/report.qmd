@@ -122,7 +122,7 @@ over time while maintaining the distinction between Luxembourg-led research
 participation):
 
 ```{r}
-#| echo: false
+#| include: false
 #| fig-height: 6
 #| fig-width: 12
 
@@ -180,9 +180,8 @@ primary_domain_lu %>%
 
 ```
 
-Observable js version of the graph:
-
 ```{r}
+#| echo: false
 ojs_define(primary_domain_lu_ojs = primary_domain_lu)
 ```
 
@@ -192,7 +191,7 @@ ojs_define(primary_domain_lu_ojs = primary_domain_lu)
 // Import required libraries
 import {Plot} from "@observablehq/plot"
 import {Inputs} from "@observablehq/inputs"
-import {rangeInput} from "@mootari/range-slider"
+import {rangeInput} from "@mootari/range-slider@1846"
 
 
 // Convert R data to JavaScript format
@@ -219,18 +218,21 @@ domain_colors = new Map([
 unique_years = [...new Set(data.map(d => d.publication_year))].sort()
 unique_domains = [...new Set(data.map(d => d.primary_domain_name))].sort()
 
+html`<div style="margin-top: 20px; padding: 15px;">
+  <h4 style="margin-top: 0; margin-bottom: 15px;">Inputs:</h4>
+  <label style="font-size: 16px; color: #333;">Select year range:</label>
+</div>`
 viewof year_range = rangeInput({
   min: 2015,
   max: 2025,
   value: [2015, 2025],
-  title: 'Select year interval',
   step: 1
 })
 
 viewof selected_domains = Inputs.checkbox(
   unique_domains,
   {
-    value: unique_domains,
+    value: ["Health Sciences"],
     label: "Research Domains"
   }
 )
@@ -265,12 +267,51 @@ filtered_data = data.filter(d => {
   return yearOk && domainOk && authorOk;
 })
 
+// Combined HTML legend with domain colors and author types
+html`
+<div style="margin-top: 20px; padding: 15px;">
+  <h4 style="margin-top: 0; margin-bottom: 15px;">Legend:</h4>
+  
+  <!-- Domain Colors -->
+  <div style="margin-bottom: 15px;">
+    <h5 style="margin: 0 0 10px 0;">Research Domains:</h5>
+    <div style="display: flex; flex-wrap: wrap; gap: 15px;">
+      ${unique_domains.map(domain => `
+        <div style="display: flex; align-items: center; gap: 6px;">
+          <div style="width: 16px; height: 16px; background-color: ${domain_colors.get(domain)}; border-radius: 2px;"></div>
+          <span style="font-size: 14px;">${domain}</span>
+        </div>
+      `).join('')}
+    </div>
+  </div>
+  
+  <!-- Author Types -->
+  <div>
+    <h5 style="margin: 0 0 10px 0;">Author Types:</h5>
+    <div style="display: flex; gap: 30px; align-items: center; flex-wrap: wrap;">
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <svg width="30" height="20">
+          <line x1="0" y1="10" x2="30" y2="10" stroke="#333" stroke-width="2.5" />
+          <circle cx="15" cy="10" r="4" fill="#333" stroke="white" stroke-width="1"/>
+        </svg>
+        <span><strong>LU-affiliated first author</strong> (solid line + circle)</span>
+      </div>
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <svg width="30" height="20">
+          <line x1="0" y1="10" x2="30" y2="10" stroke="#333" stroke-width="2.5" stroke-dasharray="8,8"/>
+          <polygon points="15,6 19,14 11,14" fill="#333" stroke="white" stroke-width="1"/>
+        </svg>
+        <span><strong>Non-LU-affiliated first author</strong> (dashed line + triangle)</span>
+      </div>
+    </div>
+  </div>
+</div>
+`
 
-// Create the plot
+// Create the plot with dynamic x-axis based on filtered data
 //| echo: false
 
-// Create the plot with better visual distinction
-// Create the plot
+// Create the plot with integer-only year ticks
 Plot.plot({
   width: 800,
   height: 500,
@@ -278,8 +319,13 @@ Plot.plot({
   marginBottom: 60,
   x: {
     label: "Publication Year",
-    domain: [Math.min(...unique_years), Math.max(...unique_years)],
-    tickFormat: "d"
+    domain: [Math.min(...filtered_data.map(d => d.publication_year)), 
+             Math.max(...filtered_data.map(d => d.publication_year))],
+    tickFormat: "d",
+    ticks: d3.range(
+      Math.min(...filtered_data.map(d => d.publication_year)),
+      Math.max(...filtered_data.map(d => d.publication_year)) + 1
+    ) // Force integer ticks only
   },
   y: {
     label: "Number of Publications",
@@ -288,9 +334,10 @@ Plot.plot({
   color: {
     domain: unique_domains,
     range: unique_domains.map(d => domain_colors.get(d)),
-    legend: true
+    legend: false
   },
   marks: [
+    // Your existing marks here...
     // Solid lines for LU-affiliated authors
     Plot.line(filtered_data.filter(d => d.is_lu_first_author === true), {
       x: "publication_year",
@@ -318,44 +365,35 @@ Plot.plot({
       stroke: "white",
       strokeWidth: 1
     }),
-    // Tooltips
-    Plot.tip(filtered_data, Plot.pointer({
-      x: "publication_year",
-      y: "total",
-      fill: "primary_domain_name",
-      title: d => `${d.primary_domain_name}\n${d.publication_year}\nPublications: ${d.total}\nLU First Author: ${d.is_lu_first_author ? "Yes" : "No"}`
-    }))
+    // Vertical line rule (only when "Both" is selected)
+    ...(selected_author_type === "Both" ? [
+      Plot.ruleX(filtered_data, Plot.pointerX({
+        x: "publication_year",
+        stroke: "gray",
+        strokeWidth: 1,
+        strokeDasharray: "3,3",
+        opacity: 0.7
+      }))
+    ] : []),
+    // Enhanced tooltips
+    Plot.tip(filtered_data, selected_author_type === "Both" ? 
+      Plot.pointerX({
+        x: "publication_year",
+        fill: "primary_domain_name",
+        title: d => `${d.primary_domain_name}\n${d.publication_year}\nPublications: ${d.total}\nLU First Author: ${d.is_lu_first_author ? "Yes" : "No"}`,
+        fontSize: 12
+      }) : 
+      Plot.pointer({
+        x: "publication_year",
+        y: "total",
+        fill: "primary_domain_name",
+        title: d => `${d.primary_domain_name}\n${d.publication_year}\nPublications: ${d.total}\nLU First Author: ${d.is_lu_first_author ? "Yes" : "No"}`
+      })
+    )
   ],
   title: "Luxembourg Research Publications by Domain Over Time"
 })
 
-
-
-
-//| echo: false
-
-// Author Type Legend
-html`
-<div style="margin-top: 20px; padding: 15px; border: 1px solid #ddd; border-radius: 5px; background-color: #f9f9f9;">
-  <h4 style="margin-top: 0; margin-bottom: 10px;">Author Type Legend:</h4>
-  <div style="display: flex; gap: 30px; align-items: center;">
-    <div style="display: flex; align-items: center; gap: 8px;">
-      <svg width="30" height="20">
-        <line x1="0" y1="10" x2="30" y2="10" stroke="#333" stroke-width="2.5" />
-        <circle cx="15" cy="10" r="4" fill="#333" stroke="white" stroke-width="1"/>
-      </svg>
-      <span><strong>LU-affiliated first author</strong> (solid line + circle)</span>
-    </div>
-    <div style="display: flex; align-items: center; gap: 8px;">
-      <svg width="30" height="20">
-        <line x1="0" y1="10" x2="30" y2="10" stroke="#333" stroke-width="2.5" stroke-dasharray="2,8"/>
-        <polygon points="15,6 19,14 11,14" fill="#333" stroke="white" stroke-width="1"/>
-      </svg>
-      <span><strong>Non-LU-affiliated first author</strong> (dashed line + triangle)</span>
-    </div>
-  </div>
-</div>
-`
 
 
 ```
