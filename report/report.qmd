@@ -1,12 +1,5 @@
 ---
 title: "Research Publications Affiliated with Luxembourg: A Data-Driven Analysis"
-page-layout: full
-format:
-  html:
-    toc: true
-    toc-depth: 3
-    number-sections: true
-    embed-resources: true
 ---
 
 ```{r}
@@ -184,6 +177,186 @@ primary_domain_lu %>%
   ) +
   # Adjust legend to show in multiple rows if needed
   guides(color = guide_legend(nrow = 2, byrow = TRUE))
+
+```
+
+Observable js version of the graph:
+
+```{r}
+ojs_define(primary_domain_lu_ojs = primary_domain_lu)
+```
+
+```{ojs}
+//| echo: false
+
+// Import required libraries
+import {Plot} from "@observablehq/plot"
+import {Inputs} from "@observablehq/inputs"
+import {rangeInput} from "@mootari/range-slider"
+
+
+// Convert R data to JavaScript format
+raw_data = transpose(primary_domain_lu_ojs)
+
+// Convert data types to ensure Observable Plot can use them
+data = raw_data.map(d => ({
+  publication_year: +d.publication_year,  // Convert to number
+  primary_domain_name: d.primary_domain_name,
+  total: +d.total,  // Convert to number
+  is_lu_first_author: d.is_lu_first_author === "TRUE" || d.is_lu_first_author === true  // Convert to boolean
+}))
+
+// Create color mapping
+domain_colors = new Map([
+  ["Health Sciences", "#FF6B35"],
+  ["Life Sciences", "#003399"],
+  ["MISSING-DOMAIN", "#228B22"],
+  ["Physical Sciences", "#FF1493"],
+  ["Social Sciences", "#800080"]
+])
+
+// Get unique values for controls
+unique_years = [...new Set(data.map(d => d.publication_year))].sort()
+unique_domains = [...new Set(data.map(d => d.primary_domain_name))].sort()
+
+viewof year_range = rangeInput({
+  min: 2015,
+  max: 2025,
+  value: [2015, 2025],
+  title: 'Select year interval',
+  step: 1
+})
+
+viewof selected_domains = Inputs.checkbox(
+  unique_domains,
+  {
+    value: unique_domains,
+    label: "Research Domains"
+  }
+)
+
+viewof selected_author_type = Inputs.radio(
+  ["LU-affiliated first author", "Non LU-affiliated first author", "Both"],
+  {
+    value: "Both",
+    label: "First Author Affiliation"
+  }
+)
+
+
+// Filter data based on selections
+filtered_data = data.filter(d => {
+  // Year filter
+  const yearOk = d.publication_year >= year_range[0] && d.publication_year <= year_range[1];
+  
+  // Domain filter
+  const domainOk = selected_domains.includes(d.primary_domain_name);
+  
+  // Author filter
+  let authorOk = false;
+  if (selected_author_type === "Both") {
+    authorOk = true;
+  } else if (selected_author_type === "LU-affiliated first author") {
+    authorOk = d.is_lu_first_author === true;
+  } else if (selected_author_type === "Non LU-affiliated first author") {
+    authorOk = d.is_lu_first_author === false;
+  }
+  
+  return yearOk && domainOk && authorOk;
+})
+
+
+// Create the plot
+//| echo: false
+
+// Create the plot with better visual distinction
+// Create the plot
+Plot.plot({
+  width: 800,
+  height: 500,
+  marginLeft: 60,
+  marginBottom: 60,
+  x: {
+    label: "Publication Year",
+    domain: [Math.min(...unique_years), Math.max(...unique_years)],
+    tickFormat: "d"
+  },
+  y: {
+    label: "Number of Publications",
+    grid: true
+  },
+  color: {
+    domain: unique_domains,
+    range: unique_domains.map(d => domain_colors.get(d)),
+    legend: true
+  },
+  marks: [
+    // Solid lines for LU-affiliated authors
+    Plot.line(filtered_data.filter(d => d.is_lu_first_author === true), {
+      x: "publication_year",
+      y: "total",
+      stroke: "primary_domain_name",
+      strokeWidth: 2.5,
+      z: d => `${d.primary_domain_name}-LU`
+    }),
+    // Dashed lines for non-LU-affiliated authors
+    Plot.line(filtered_data.filter(d => d.is_lu_first_author === false), {
+      x: "publication_year",
+      y: "total",
+      stroke: "primary_domain_name",
+      strokeWidth: 2.5,
+      strokeDasharray: "8,8",
+      z: d => `${d.primary_domain_name}-NonLU`
+    }),
+    // Points with different symbols
+    Plot.dot(filtered_data, {
+      x: "publication_year",
+      y: "total",
+      fill: "primary_domain_name",
+      symbol: d => d.is_lu_first_author ? "circle" : "triangle",
+      r: 5,
+      stroke: "white",
+      strokeWidth: 1
+    }),
+    // Tooltips
+    Plot.tip(filtered_data, Plot.pointer({
+      x: "publication_year",
+      y: "total",
+      fill: "primary_domain_name",
+      title: d => `${d.primary_domain_name}\n${d.publication_year}\nPublications: ${d.total}\nLU First Author: ${d.is_lu_first_author ? "Yes" : "No"}`
+    }))
+  ],
+  title: "Luxembourg Research Publications by Domain Over Time"
+})
+
+
+
+
+//| echo: false
+
+// Author Type Legend
+html`
+<div style="margin-top: 20px; padding: 15px; border: 1px solid #ddd; border-radius: 5px; background-color: #f9f9f9;">
+  <h4 style="margin-top: 0; margin-bottom: 10px;">Author Type Legend:</h4>
+  <div style="display: flex; gap: 30px; align-items: center;">
+    <div style="display: flex; align-items: center; gap: 8px;">
+      <svg width="30" height="20">
+        <line x1="0" y1="10" x2="30" y2="10" stroke="#333" stroke-width="2.5" />
+        <circle cx="15" cy="10" r="4" fill="#333" stroke="white" stroke-width="1"/>
+      </svg>
+      <span><strong>LU-affiliated first author</strong> (solid line + circle)</span>
+    </div>
+    <div style="display: flex; align-items: center; gap: 8px;">
+      <svg width="30" height="20">
+        <line x1="0" y1="10" x2="30" y2="10" stroke="#333" stroke-width="2.5" stroke-dasharray="2,8"/>
+        <polygon points="15,6 19,14 11,14" fill="#333" stroke="white" stroke-width="1"/>
+      </svg>
+      <span><strong>Non-LU-affiliated first author</strong> (dashed line + triangle)</span>
+    </div>
+  </div>
+</div>
+`
+
 
 ```
 
