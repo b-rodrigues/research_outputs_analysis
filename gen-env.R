@@ -11,7 +11,6 @@ rix(
   r_pkgs = c(
     "R_utils",
     "archive",
-    "carrier",
     "crosstalk",
     "dplyr",
     "DT",
@@ -23,7 +22,6 @@ rix(
     "janitor",
     "jsonlite",
     "lubridate",
-    "mirai",
     "openalexR",
     "purrr",
     "quarto",

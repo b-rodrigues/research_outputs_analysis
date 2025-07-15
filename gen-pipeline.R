@@ -38,18 +38,28 @@ list(
 
   rxp_r(
     name = dataset,
-    expr = {daemons(2);filter(
+    expr = filter(
       openalex_1,
       type == "article"
     ) %>%
       mutate(
-        first_author_country = map(authorships, in_parallel(\(x)(get_first_author_country(df = x)))),
-        all_authors_countries_distribution = map(authorships, in_parallel(\(x)(get_all_authors_country(df = x, distribution = TRUE)))),
-        all_authors_countries_unique = map(authorships, in_parallel(\(x)(get_all_authors_country(df = x, distribution = FALSE)))),
-        is_lu_first_author = map_lgl(first_author_country, in_parallel(\(x) {(grepl("LU", x))})),
-        primary_domain_name = map_chr(topics, in_parallel(\(x)(safe_get_domain_name(df = x)))),
-        primary_subfield_name = map_chr(topics, in_parallel(\(x)(safe_get_subfield_name(df = x))))
-      )},
+        first_author_country = map(authorships, get_first_author_country),
+        all_authors_countries_distribution = map(
+          authorships,
+          get_all_authors_country,
+          distribution = TRUE
+        ),
+        all_authors_countries_unique = map(
+          authorships,
+          get_all_authors_country,
+          distribution = FALSE
+        ),
+        is_lu_first_author = map_lgl(first_author_country, \(x) {
+          (grepl("LU", x))
+        }),
+        primary_domain_name = map_chr(topics, safe_get_domain_name),
+        primary_subfield_name = map_chr(topics, safe_get_subfield_name)
+      ),
     additional_files = "functions.R"
   ),
 
