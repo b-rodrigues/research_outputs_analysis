@@ -22,6 +22,7 @@ rix(
     "janitor",
     "jsonlite",
     "lubridate",
+    "mirai",
     "openalexR",
     "purrr",
     "quarto",
