@@ -410,7 +410,10 @@ Plot.tip(filtered_data, selected_author_type === "Both" ?
 
 ```
 
-The graph below should the top 10 subfields:
+OpenAlex employs a more granular classification system through subfields, which
+provides greater specificity than broad domains. Given that this taxonomy
+encompasses over 200 distinct subfields, this analysis focuses on the ten most
+frequently represented subfields in Luxembourg's research output:
 
 ```{r}
 #| echo: false
