@@ -11,12 +11,10 @@ rix(
   r_pkgs = c(
     "R_utils",
     "archive",
-    "crosstalk",
     "dplyr",
     "DT",
-    "ggplot2",
-    "ggrepel",
     "forcats",
+    "ggplot2",
     "httr",
     "htmltools",
     "janitor",
@@ -29,7 +27,6 @@ rix(
     "readxl",
     "rix",
     "tidyr",
-    "tinytable",
     "xml2"
   ),
   git_pkgs = list(

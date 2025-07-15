@@ -5,7 +5,6 @@ title: "Research Publications Affiliated with Luxembourg: A Data-Driven Analysis
 ```{r}
 #| include: false
 library(DT)
-library(crosstalk)
 library(dplyr)
 library(ggplot2)
 library(rixpress)
@@ -16,6 +15,7 @@ rxp_load("type_doi_missing")
 rxp_load("lu_first_authors")
 rxp_load("primary_domain_lu")
 rxp_load("primary_subfield_lu")
+rxp_load("languages")
 rxp_load("country_authors_unique")
 ```
 
@@ -59,6 +59,7 @@ publications:
 datatable(
   type_doi_missing,
   caption = "Distribution of types of work and missingness of DOI",
+  filter = list(position = 'top', clear = FALSE),
   options = list(
     pageLength = 15,
     scrollX = TRUE,
@@ -75,7 +76,12 @@ restricts its focus to articles exclusively. This selection encompasses both
 publications with DOI identifiers and those without, ensuring comprehensive
 coverage of Luxembourg's peer-reviewed research output.
 
-The analytical framework employs a critical distinction based on first authorship status: whether the primary author maintains affiliation with a Luxembourg institution or represents an international collaboration where Luxembourg institutions participate as secondary contributors. This classification enables differentiation between research leadership and research participation within the national research ecosystem:
+The analytical framework employs a critical distinction based on first
+authorship status: whether the primary author maintains affiliation with a
+Luxembourg institution or represents an international collaboration where
+Luxembourg institutions participate as secondary contributors. This
+classification enables differentiation between research leadership and research
+participation within the national research ecosystem:
 
 ```{r}
 #| echo: false
@@ -88,18 +94,12 @@ lu_first_authors <- lu_first_authors %>%
   `Publication Year` = publication_year,
   `Non-LU first author` = `FALSE`,
   `LU first author` = `TRUE`
-)
-
-lu_first_authors_shared <- SharedData$new(lu_first_authors)
-
-# Year filter widget
-filter_slider(id = "publication_year_filter", label = "Select Year Range:",
-              sharedData = lu_first_authors_shared, column = "Publication Year",
-              step = 1, round = TRUE, width = "100%")
+  ) %>%
+  mutate(`Publication Year` = as.integer(`Publication Year`))
 
 datatable(
-  lu_first_authors_shared,
-  filter = "top",
+  lu_first_authors,
+  filter = list(position = 'top', clear = FALSE),
   caption = "Number of articles where the first author is LU-affiliated",
   options = list(
     pageLength = 10,
@@ -878,3 +878,34 @@ Plot.plot({
 
 
 ```
+
+Luxembourg has three official languages but English is the language of science, regardless
+of domain:
+
+```{r}
+#| echo: false
+#| label: tbl-languages
+#| tbl-cap: Distribution of languages used to write articles
+
+languages <- languages %>%
+  mutate(publication_year = as.integer(publication_year), .before = everything()) %>%
+  rename(
+        Publication_year = "publication_year",
+        Primary_domain_name = "primary_domain_name",
+        First_author_affiliation = "is_lu_first_author"
+      )
+
+datatable(
+  languages,
+  caption = "Distribution of languages used to write articles",
+  filter = list(position = 'top', clear = FALSE),
+  options = list(
+    pageLength = 15,
+    scrollX = TRUE,
+    dom = 'Bfrtip',
+    buttons = c('excel')
+  ),
+  extensions = 'Buttons'
+)
+```
+

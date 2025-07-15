@@ -140,13 +140,31 @@ list(
   rxp_r(
     name = languages,
     expr = dataset %>%
+      mutate(
+        is_en = if_else(
+          language == "en",
+          "English",
+          "Other language",
+          "Missing language"
+        )
+      ) %>%
+      mutate(
+        is_lu_first_author = if_else(
+          is_lu_first_author,
+          "LU",
+          "Non-LU",
+          NA_character_
+        )
+      ) %>%
       group_by(
         publication_year,
         is_lu_first_author,
         primary_domain_name,
-        language
+        is_en
       ) %>%
-      summarise(total = n_distinct(doi), .groups = 'drop')
+      summarise(total = n_distinct(doi), .groups = 'drop') %>%
+      pivot_wider(names_from = "is_en", values_from = "total") %>%
+      arrange(desc(publication_year))
   ),
 
   # Summarize by primary domain and LU-affiliated first authors.
