@@ -277,6 +277,18 @@ list(
       mutate(country_groups = fct_reorder(country_groups, desc(n)))
   ),
 
+  rxp_r(
+    name = citation_data,
+    expr = dataset %>%
+      select(
+        publication_year,
+        doi,
+        is_lu_first_author,
+        primary_domain_name,
+        cited_by_count
+      )
+  ),
+
   # Render the final Quarto report.
   rxp_qmd(
     name = report,

@@ -17,6 +17,7 @@ rxp_load("primary_domain_lu")
 rxp_load("primary_subfield_lu")
 rxp_load("languages")
 rxp_load("country_authors_unique")
+rxp_load("citation_data")
 ```
 
 ## Introduction
@@ -911,4 +912,3 @@ datatable(
   extensions = 'Buttons'
 )
 ```
-
