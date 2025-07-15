@@ -37,30 +37,95 @@ list(
   ),
 
   rxp_r(
-    name = dataset,
+    name = openalex_articles,
     expr = filter(
       openalex_1,
       type == "article"
-    ) %>%
+    )
+  ),
+
+  rxp_r(
+    name = dataset_first_author_country,
+    expr = openalex_articles %>%
       mutate(
         first_author_country = map(authorships, get_first_author_country),
+        is_lu_first_author = map_lgl(first_author_country, \(x) {
+          (grepl("LU", x))
+        })
+      ),
+    additional_files = "functions.R"
+  ),
+
+  rxp_r(
+    name = dataset_all_authors_countries_distribution,
+    expr = openalex_articles %>%
+      mutate(
         all_authors_countries_distribution = map(
           authorships,
           get_all_authors_country,
           distribution = TRUE
-        ),
+        )
+      ),
+    additional_files = "functions.R"
+  ),
+
+  rxp_r(
+    name = dataset_all_authors_countries_unique,
+    expr = openalex_articles %>%
+      mutate(
         all_authors_countries_unique = map(
           authorships,
           get_all_authors_country,
           distribution = FALSE
-        ),
-        is_lu_first_author = map_lgl(first_author_country, \(x) {
-          (grepl("LU", x))
-        }),
+        )
+      ),
+    additional_files = "functions.R"
+  ),
+
+  rxp_r(
+    name = dataset_primary_domain_name,
+    expr = openalex_articles %>%
+      mutate(
         primary_domain_name = map_chr(topics, safe_get_domain_name),
         primary_subfield_name = map_chr(topics, safe_get_subfield_name)
       ),
     additional_files = "functions.R"
+  ),
+
+  rxp_r(
+    name = dataset_primary_subfield_name,
+    expr = openalex_articles %>%
+      mutate(
+        primary_subfield_name = map_chr(topics, safe_get_subfield_name)
+      ),
+    additional_files = "functions.R"
+  ),
+
+  rxp_r(
+    name = dataset,
+    expr = {
+      bind_cols(
+        openalex_articles,
+        select(
+          dataset_first_author_country,
+          first_author_country,
+          is_lu_first_author
+        ),
+        select(
+          dataset_all_authors_countries_distribution,
+          all_authors_countries_distribution
+        ),
+        select(
+          dataset_all_authors_countries_unique,
+          all_authors_countries_unique
+        ),
+        select(
+          dataset_primary_domain_name,
+          primary_domain_name,
+          primary_subfield_name
+        )
+      )
+    }
   ),
 
   # Summarize the count of articles by publication year and LU-first-author status.
@@ -200,7 +265,9 @@ list(
     qmd_file = "report/report.qmd"
   )
 ) |>
-  rixpress(project_path = ".", build = TRUE)
+  rixpress(project_path = ".", build = FALSE)
+
+rxp_make(max_jobs = 4, cores = 1)
 
 # After running, you can visualize the pipeline's Directed Acyclic Graph (DAG) with:
 # rxp_ggdag()
