@@ -11,6 +11,7 @@ rix(
   r_pkgs = c(
     "R_utils",
     "archive",
+    "carrier",
     "crosstalk",
     "dplyr",
     "DT",

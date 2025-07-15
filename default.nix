@@ -3,6 +3,7 @@
 # >rix(date = "2025-07-14",
 #  > r_pkgs = c("R_utils",
 #  > "archive",
+#  > "carrier",
 #  > "crosstalk",
 #  > "dplyr",
 #  > "DT",
@@ -31,8 +32,8 @@
 #  > git_pkgs = list(list(package_name = "rixpress",
 #  > repo_url = "https://github.com/b-rodrigues/rixpress",
 #  > commit = "fe0a9a2eeede61984845e04c9f7cc7a152e3aebf")),
-#  > ide = "none",
-#  >      project_path = ".",
+#  >      ide = "none",
+#  > project_path = ".",
 #  > overwrite = TRUE,
 #  > r_ver = "4.5.1")
 # It uses the `rstats-on-nix` fork of `nixpkgs` which provides improved
@@ -45,6 +46,7 @@ let
   rpkgs = builtins.attrValues {
     inherit (pkgs.rPackages) 
       archive
+      carrier
       crosstalk
       dplyr
       DT
