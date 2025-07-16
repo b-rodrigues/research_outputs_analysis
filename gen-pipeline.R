@@ -289,6 +289,32 @@ list(
       )
   ),
 
+  rxp_r(
+    name = citation_data_stats,
+    expr = citation_data %>%
+      group_by(
+        publication_year,
+        is_lu_first_author,
+        primary_domain_name
+      ) %>%
+      summarise(
+        q_25   = round(quantile(cited_by_count, probs = .25), 0),
+        median = round(quantile(cited_by_count, probs = .50), 0),
+        q_75   = round(quantile(cited_by_count, probs = .75), 0),
+        q_95   = round(quantile(cited_by_count, probs = .95), 0),
+        q_99   = round(quantile(cited_by_count, probs = .99), 0),
+        max   = round(max(cited_by_count), 0)
+        ) %>%
+      mutate(
+        is_lu_first_author = if_else(
+          is_lu_first_author,
+          "LU",
+          "Non-LU",
+          NA_character_
+        )
+      )
+  ),
+
   # Render the final Quarto report.
   rxp_qmd(
     name = report,

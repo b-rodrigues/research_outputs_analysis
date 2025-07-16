@@ -16,8 +16,8 @@ rxp_load("lu_first_authors")
 rxp_load("primary_domain_lu")
 rxp_load("primary_subfield_lu")
 rxp_load("languages")
+rxp_load("citation_data_stats")
 rxp_load("country_authors_unique")
-rxp_load("citation_data")
 ```
 
 ## Introduction
@@ -883,20 +883,67 @@ Plot.plot({
 
 ```
 
+The table belows shows some citation statistics by year and domain:
+
+```{r}
+#| echo: false
+#| label: tbl-citation
+#| tbl-cap: Citation statistics
+
+citation_stats <- citation_data_stats %>%
+  mutate(publication_year = as.integer(publication_year), .before = everything()) %>%
+  rename(
+    `Publication year` = "publication_year",
+    `Primary domain name` = "primary_domain_name",
+    `First author affiliation` = "is_lu_first_author",
+    `25% quantile` = "q_25",
+    `Median` = "median",
+    `75% quantile` = "q_75",
+    `95% quantile` = "q_95",
+    `99% quantile` = "q_99",
+    `Maximum` = "max"
+  )
+
+datatable(
+  citation_stats,
+  caption = "Citation statistics",
+  filter = list(position = 'top', clear = FALSE),
+  options = list(
+    pageLength = 15,
+    scrollX = TRUE,
+    dom = 'Bfrtip',
+    buttons = c('excel')
+  ),
+  extensions = 'Buttons'
+)
+```
+
+
+As expected, citation patterns, regardless of discipline, publication year, or
+author affiliation, tend to follow a *power-law* distribution. Most research
+articles receive relatively few citations, as shown by the low median. In the
+health sciences, for LU-affiliated lead authors, only 25% of articles published
+in 2024 received at least 2 citations (as shown in the 75th percentile column in
+the table above), and just 1% reached 16 citations. However, citation counts
+accumulate over time, so it is more informative to consider older publications.
+For the same group, among articles published in 2019, 25% received at least 18
+citations, and 1% reached 147 or more. The highest citation count observed for a
+single article in this group was 482.
+
 Luxembourg has three official languages but English is the language of science, regardless
 of domain:
 
 ```{r}
 #| echo: false
-#| label: tbl-languages
-#| tbl-cap: Distribution of languages used to write articles
+                                        #| label: tbl-languages
+                                        #| tbl-cap: Distribution of languages used to write articles
 
 languages <- languages %>%
   mutate(publication_year = as.integer(publication_year), .before = everything()) %>%
   rename(
-        Publication_year = "publication_year",
-        Primary_domain_name = "primary_domain_name",
-        First_author_affiliation = "is_lu_first_author"
+        `Publication year` = "publication_year",
+        `Primary domain name` = "primary_domain_name",
+        `First author affiliation` = "is_lu_first_author"
       )
 
 datatable(
