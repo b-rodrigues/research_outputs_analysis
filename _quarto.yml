@@ -11,14 +11,13 @@ format:
     number-sections: true
     embed-resources: true
     page-layout: full
-    code-fold: true
-    code-tools: true
     fig-width: 10
     fig-height: 6
     fig-dpi: 300
     df-print: paged
     smooth-scroll: true
     link-external-newwindow: true
+    echo: false
     
 crossref:
   fig-title: "Figure"
