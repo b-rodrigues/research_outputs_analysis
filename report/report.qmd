@@ -70,18 +70,19 @@ quality depends on source reporting accuracy and the platform's ability to
 correctly identify Luxembourg-affiliated works. It sould also be noted that the
 year 2025 is still ongoing and as such data for 2025 is obviously not complete,
 but this may also be the case for data from 2024. OpenAlex needs time to
-discover, process, and index publications. These methodological considerations
-inform our interpretation of the analytical findings presented throughout this
-report.
+discover, process, and index publications. These considerations should be taken
+into account when intepreting the finding from this report.
 
 ## Publication Portfolio Analysis
 
 ### Document Types and Coverage
 
 The initial dataset encompasses all document types recorded in OpenAlex for
-Luxembourg-affiliated scholarly works. The following analysis examines the
-distribution of work types and the presence of Digital Object Identifiers
-(DOIs):
+Luxembourg-affiliated scholarly works. The following table shows the
+distribution of work types and the presence of Digital Object Identifiers (DOI:
+a unique, persistent identifier assigned to digital publications that provide a
+permanent web address linking directly to the original document, even if the
+publisher's URL changes):
 
 ```{r}
 #| echo: false
@@ -103,16 +104,16 @@ datatable(
 
 Given the substantial predominance of journal articles in the dataset and their
 central importance in academic research communication, this analysis focuses
-exclusively on peer-reviewed articles. This selection encompasses both
-publications with DOI identifiers and those without, ensuring comprehensive
-coverage of Luxembourg's research output.
+exclusively on peer-reviewed articles, with or without a DOI identifier.
 
 ### Research Leadership vs. Collaboration
 
 From 2015 until 2023, research output kept increasing, regardless of the
 affiliation of the primary author, as shown in the graph below. 2024 marked a
 decrease in output for the first time, but it’s too early to know if this
-decrease will continue into 2025 and beyond.
+decrease will continue into 2025 and beyond. As explained in the introduction,
+it is very well possible that scholarly works from 2024, and certainly from
+2025, are not all indexed by OpenAlex yet.
 
 ```{r}
 #| echo: false
@@ -247,7 +248,8 @@ datatable(
 
 In aggregate, most works are led by LU-affiliated researchers, but this pattern
 reverses depending on the domain. The interactive visualization below tracks
-publication volumes across domains over time:
+publication volumes across domains over time (you can interact with the graph
+below by selecting domains or affiliation of the first author):
 
 ```{r}
 #| include: false
@@ -536,8 +538,9 @@ sciences.
 ### Research Specialization Areas
 
 Beyond broad domains, OpenAlex provides granular classification through research
-subfields. With over 200 distinct subfields available, this analysis focuses on
-the ten most prominent areas in Luxembourg's research portfolio:
+subfields. There are over 200 distinct subfields available, so the graph below
+focuses on the ten most prominent subfields in Luxembourg's research portfolio
+by affilation of the first author (which results in 13 unique subfields):
 
 ```{r}
 #| echo: false
@@ -761,7 +764,7 @@ Plot.plot({
 
 ```
 
-The subfield that generate the most publications are artificial intelligence,
+The subfields that generate the most publications are artificial intelligence,
 aerospace engineering and political science and international relations,
 especially over the last 5 years.
 
@@ -776,7 +779,8 @@ but only for LU-affiliated lead authors.
 Luxembourg's research ecosystem is characterized by extensive international
 collaboration. This section examines the geographical distribution of research
 partnerships, revealing the countries and regions most frequently collaborating
-with Luxembourg institutions:
+with Luxembourg institutions. The visualization below provides interactive
+exploration of Luxembourg's collaboration patterns and counts the total number of author-country affiliations rather than unique publications, meaning that a single paper with authors from multiple countries contributes to the count for each respective country. For example, if one publication has ten authors from ten different countries, it would be counted ten times across those countries, reflecting the collaborative nature of international research partnerships.
 
 ```{r}
 #| include: false
@@ -791,6 +795,7 @@ country_colors <- c(
   "France" = "#800080", # Purple
   "USA" = "#228B22", # Forest green
   "Belgium" = "#FFD700", # Gold
+  "Germany" = "#000000", # Black
   "China" = "#DE2910", # Red
   "Great Britain" = "#C8102E", # British red (Union Jack)
   "Italy" = "#009246", # Italian green (flag)
@@ -834,8 +839,6 @@ ggplot(country_authors_unique, aes(x = publication_year, y = n, fill = country_g
   guides(fill = guide_legend(nrow = 2, byrow = TRUE))
 ```
 
-The visualization below provides interactive exploration of Luxembourg's
-collaboration patterns with key international partners:
 
 ```{r}
 #| echo: false
@@ -864,6 +867,7 @@ country_colors = new Map([
   ["France", "#800080"],
   ["USA", "#228B22"],
   ["Belgium", "#FFD700"],
+  ["Germany", "#000000"],
   ["China", "#DE2910"],
   ["Great Britain", "#C8102E"],
   ["Italy", "#009246"],
@@ -960,7 +964,7 @@ Plot.plot({
     paddingOuter: 0.2
   },
   y: {
-    label: "Total Publications",
+    label: "Total Affiliations",
     grid: true
   },
   fx: {
@@ -1000,12 +1004,15 @@ Plot.plot({
   style: {
     fontSize: "12px"
   },
-  title: "Publications by Country/Region Over Time (Faceted by Luxembourg First Author Status)"
+  title: "Author Affiliations by Country/Region Over Time (Faceted by Luxembourg First Author Status)"
 })
 
-
-
 ```
+
+Collaboration pattern shows strong partnerships with European Union countries,
+Germany and France. The USA is fourth, and then Belgium, with relatively modest
+contributions from other regions like China and Switzerland, regardless of first
+author affiliation.
 
 ## Research Impact Analysis
 
@@ -1055,36 +1062,30 @@ disciplines, publication years, and authorship types. This universal pattern
 reflects the fundamental nature of scientific communication, where most articles
 receive relatively few citations while a small percentage achieve high impact.
 
-**Key Insights:**
+The analysis reveals several key insights about Luxembourg's research impact
+patterns. Citation accumulation shows clear time dependency, with recent
+publications naturally having lower citation counts while older works benefit
+from extended accumulation periods. Different scientific domains exhibit
+distinct citation cultures and timelines, affecting overall impact metrics.
+Luxembourg researchers benefit significantly from international partnerships,
+with higher citation rates for collaborative works where Luxembourg institutions
+serve as co-authors rather than lead authors. This pattern suggests that
+international collaborations often address research questions with broader
+global relevance and appeal to wider scientific audiences, potentially due to
+combined expertise and diverse perspectives from multi-national teams.
+Additionally, lead institutions in these collaborations may have greater
+resources for research dissemination and promotion.
 
-- **Temporal Effect**: Citation accumulation demonstrates clear time dependency.
-  Recent publications naturally show lower citation counts, while older works
-  benefit from extended citation accumulation periods.
-
-- **Domain Variation**: Different scientific domains exhibit distinct citation
-  cultures and timelines, affecting overall impact metrics.
-  
-- **Collaboration benefits**: Luxembourg researchers benefit significantly from
-  international partnerships, as evidenced by higher citation rates for
-  collaborative works where Luxembourg institutions serve as co-authors rather
-  than lead authors. This pattern suggests that international collaborations
-  often address research questions with broader global relevance and appeal to
-  wider scientific audiences, potentially due to the combined expertise and
-  diverse perspectives that multi-national teams bring to complex research
-  challenges. Additionally, lead institutions in these collaborations may have
-  greater resources for research dissemination and promotion, contributing to
-  enhanced visibility and impact.
-
-**Illustrative Examples:**
-
-- Health Sciences (LU-affiliated lead authors, 2024): 75% of articles received
-  ≤2 citations, while 1% achieved ≥16 citations
-
-- Health Sciences (LU-affiliated lead authors, 2019): 75% of articles received
-  ≤18 citations, while 1% achieved ≥147 citations
-
-- Peak Impact: The highest-cited single article in this group achieved 482
-  citations for LU-affiliated authors, but 3331 for non LU-affiliated authors.
+As an example, let’s take a closer look at the Health Sciences domain. For
+Luxembourg-affiliated first authors in 2024, 75% of articles received two or
+fewer citations, while only 1% achieved 16 or more citations. However, for works
+published in 2019 which had more time to accumulate citations, publications by
+Luxembourg-affiliated lead authors showed 75% of articles receiving 18 or fewer
+citations and 1% achieving 147 or more citations. The peak impact demonstrates
+the substantial difference between lead and collaborative authorship roles, with
+the highest-cited single article achieving 482 citations for
+Luxembourg-affiliated authors but 3,331 citations for non-Luxembourg-affiliated
+authors in collaborative works.
 
 ## Scientific Communication Patterns
 
@@ -1128,23 +1129,36 @@ research visibility and accessibility.
 ## Conclusions and Future Directions
 
 This comprehensive analysis of Luxembourg's research landscape reveals several
-key characteristics:
+key characteristics that define the country's position in the global scientific
+community. Luxembourg maintains active research programs across multiple
+scientific domains, with particular strength in physical and social sciences,
+demonstrating a balanced research portfolio that spans diverse areas of inquiry.
+The country's research ecosystem demonstrates extensive international
+collaboration, particularly with European partners, reflecting Luxembourg's
+strategic position within the European research infrastructure and its
+commitment to cross-border scientific cooperation.
 
-1. **Balanced Research Portfolio**: Luxembourg maintains active research
-   programs across multiple scientific domains, with particular strength in
-   physical and social sciences.
+To effectively monitor Luxembourg's research performance and strategic
+positioning, several key performance indicators should be tracked annually:
+publication volume trends by domain and institutional affiliation, international
+collaboration rates and geographic distribution of partnerships, citation impact
+metrics across different time horizons, the proportion of Luxembourg-led versus
+collaborative research projects, language diversity in publications, and the
+emergence of new research specializations or declining areas. Additionally,
+monitoring the ratio of publications with Luxembourg first authors versus those
+where Luxembourg institutions serve as collaborative partners would provide
+insights into the country's research leadership capacity versus its integration
+into international networks. However, it is equally important to expand this
+monitoring framework beyond traditional academic articles to include datasets
+produced, software developed, patents filed, policy reports, and other forms of
+research communication and knowledge transfer, as these outputs increasingly
+represent critical components of modern research impact and innovation
+ecosystems. Regular assessment of these comprehensive metrics would enable
+evidence-based research policy decisions and help identify opportunities for
+strategic investment in emerging or underperforming research areas.
 
-2. **International Integration**: The country's research ecosystem demonstrates
-   extensive international collaboration, particularly with European partners.
-
-4. **Growing Impact**: Citation patterns indicate increasing research impact
-   over time, with Luxembourg-affiliated work achieving significant visibility
-   in the global scientific community.
-
-5. **Global Communication**: The universal adoption of English for scientific
-   publication facilitates Luxembourg's integration into international research
-   networks.
-
-These findings position Luxembourg as a well-connected, impactful participant in
-the global research ecosystem, with research capabilities that extend far beyond
-what might be expected from its geographic size.
+Once the national publication registry will be established, this analysis could
+also become exhaustive, especially if integration with other sources such as
+OpenAlex is achieved, which would allow for international comparisons and more
+complete coverage of Luxembourg's diverse research outputs across all
+communication channels and impact pathways.

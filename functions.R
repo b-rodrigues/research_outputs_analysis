@@ -45,7 +45,6 @@ get_country_groups <- function(df) {
     "BG",
     "CY",
     "CZ",
-    "DE",
     "DK",
     "EE",
     "ES",
