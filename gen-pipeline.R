@@ -53,7 +53,7 @@ list(
           (grepl("LU", x))
         })
       ),
-    additional_files = "functions.R"
+    user_functions = "functions/get_first_author_country.R"
   ),
 
   rxp_r(
@@ -66,7 +66,7 @@ list(
           distribution = TRUE
         )
       ),
-    additional_files = "functions.R"
+    user_functions = "functions/get_all_authors_country.R"
   ),
 
   rxp_r(
@@ -79,7 +79,7 @@ list(
           distribution = FALSE
         )
       ),
-    additional_files = "functions.R"
+    user_functions = "functions/get_all_authors_country.R"
   ),
 
   rxp_r(
@@ -89,7 +89,7 @@ list(
         primary_domain_name = map_chr(topics, safe_get_domain_name),
         primary_subfield_name = map_chr(topics, safe_get_subfield_name)
       ),
-    additional_files = "functions.R"
+    user_functions = "functions/safe_get_domain_name.R"
   ),
 
   rxp_r(
@@ -98,7 +98,7 @@ list(
       mutate(
         primary_subfield_name = map_chr(topics, safe_get_subfield_name)
       ),
-    additional_files = "functions.R"
+    user_functions = "functions/safe_get_subfield_name.R"
   ),
 
   rxp_r(

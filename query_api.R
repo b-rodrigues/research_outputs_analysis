@@ -1,36 +1,70 @@
 library(openalexR)
 library(readr)
 
-# Get the data from Luxembourg
-luxembourg_works <- oa_fetch(
-  entity = "works",
-  # Filter for works with at least one author affiliated with Luxembourg
-  authorships.institutions.country_code = "LU",
-  # Select the fields you requested
-  options = list(
-    select = c(
-      "id",
-      "doi",
-      "title",
-      "publication_date",
-      "type",
-      "primary_topic",
-      "topics", # The first item in this list is the primary topic
-      "keywords",
-      "sustainable_development_goals",
-      "language",
-      "primary_location",
-      "cited_by_count",
-      "citation_normalized_percentile", # Field-normalized citation percentile (0-100)
-      "counts_by_year",
-      "open_access",
-      "authorships"
+fetch_works <- function(country_code = NULL, institution_ids = NULL, save_path = NULL) {
+  if (is.null(country_code) && is.null(institution_ids)) {
+    stop("You must provide either a country_code or institution_ids.")
+  }
+  if (!is.null(country_code) && !is.null(institution_ids)) {
+    stop("Please provide only one of country_code or institution_ids, not both.")
+  }
+
+  # Build the filter
+  filter_args <- list()
+  if (!is.null(country_code)) {
+    filter_args$authorships.institutions.country_code <- country_code
+  }
+  if (!is.null(institution_ids)) {
+    filter_args$authorships.institutions.id <- institution_ids
+  }
+
+  # Fetch
+  works <- do.call(
+    oa_fetch,
+    c(
+      list(
+        entity = "works",
+        options = list(
+          select = c(
+            "id",
+            "doi",
+            "title",
+            "publication_date",
+            "type",
+            "primary_topic",
+            "topics",
+            "keywords",
+            "sustainable_development_goals",
+            "language",
+            "primary_location",
+            "cited_by_count",
+            "citation_normalized_percentile",
+            "counts_by_year",
+            "open_access",
+            "authorships"
+          )
+        ),
+        count_only = FALSE,
+        verbose = TRUE
+      ),
+      filter_args
     )
-  ),
-  # Set a reasonable limit (adjust as needed)
-  count_only = FALSE,
-  verbose = TRUE
+  )
+
+  # Optionally save
+  if (!is.null(save_path)) {
+    saveRDS(works, save_path)
+  }
+
+  return(works)
+}
+
+luxembourg_works <- fetch_works(
+  country_code = "LU",
+  save_path = paste0("dataset/luxembourg_works_", Sys.Date(), ".rds")
 )
 
-# Need to save as RDS because of list columns of dfs
-saveRDS(luxembourg_works, "dataset/luxembourg_works_2025_07_15.rds")
+harvard_works <- fetch_works(
+  institution_ids = "https://openalex.org/I136199984",
+  save_path = paste0("dataset/harvard_works_", Sys.Date(), ".rds")
+)

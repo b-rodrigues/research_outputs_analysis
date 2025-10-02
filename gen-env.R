@@ -7,7 +7,7 @@ library(rix)
 # This includes all necessary R packages, Quarto for rendering,
 # and pulls a pinned version of {rixpress} from GitHub.
 rix(
-  date = "2025-07-14",
+  date = "2025-09-29",
   r_pkgs = c(
     "R_utils",
     "archive",
@@ -33,7 +33,7 @@ rix(
     list(
       package_name = "rixpress",
       repo_url = "https://github.com/b-rodrigues/rixpress",
-      commit = "fe0a9a2eeede61984845e04c9f7cc7a152e3aebf"
+      commit = "ae3fa023762ead2a690a91a47834434eacb3ed92"
     )
   ),
   system_pkgs = c(
