@@ -3,7 +3,7 @@ library(rixpress)
 list(
   rxp_r_file(
     name = luxembourg_works_raw,
-    path = "dataset/luxembourg_works.rds",
+    path = "data/luxembourg_works.rds",
     read_function = readRDS
   ),
 
