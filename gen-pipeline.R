@@ -321,7 +321,7 @@ list(
     qmd_file = "report/report.qmd"
   )
 ) |>
-  rixpress(project_path = ".", build = FALSE)
+  rxp_populate(project_path = ".", build = FALSE)
 
 rxp_make(max_jobs = 4, cores = 1)
 
