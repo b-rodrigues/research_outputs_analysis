@@ -87,7 +87,6 @@ list(
     expr = openalex_articles %>%
       mutate(
         primary_domain_name = map_chr(topics, safe_get_domain_name),
-        primary_subfield_name = map_chr(topics, safe_get_subfield_name)
       ),
     user_functions = "functions/safe_get_domain_name.R"
   ),
@@ -122,6 +121,9 @@ list(
         select(
           dataset_primary_domain_name,
           primary_domain_name,
+        ),
+        select(
+          dataset_primary_subfield_name,
           primary_subfield_name
         )
       )
@@ -298,13 +300,13 @@ list(
         primary_domain_name
       ) %>%
       summarise(
-        q_25   = round(quantile(cited_by_count, probs = .25), 0),
+        q_25 = round(quantile(cited_by_count, probs = .25), 0),
         median = round(quantile(cited_by_count, probs = .50), 0),
-        q_75   = round(quantile(cited_by_count, probs = .75), 0),
-        q_95   = round(quantile(cited_by_count, probs = .95), 0),
-        q_99   = round(quantile(cited_by_count, probs = .99), 0),
-        max   = round(max(cited_by_count), 0)
-        ) %>%
+        q_75 = round(quantile(cited_by_count, probs = .75), 0),
+        q_95 = round(quantile(cited_by_count, probs = .95), 0),
+        q_99 = round(quantile(cited_by_count, probs = .99), 0),
+        max = round(max(cited_by_count), 0)
+      ) %>%
       mutate(
         is_lu_first_author = if_else(
           is_lu_first_author,
