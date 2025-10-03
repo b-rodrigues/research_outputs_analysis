@@ -249,7 +249,8 @@ list(
     expr = country_authors_1 %>%
       get_country_groups() %>%
       group_by(publication_year, is_lu_first_author, country_groups) %>%
-      summarise(total = sum(n), .groups = "drop")
+      summarise(total = sum(n), .groups = "drop"),
+    user_functions = "functions/get_country_groups.R"
   ),
 
   rxp_r(
@@ -276,7 +277,8 @@ list(
         country_groups
       ) %>%
       summarise(n = sum(n), .groups = "drop") %>%
-      mutate(country_groups = fct_reorder(country_groups, desc(n)))
+      mutate(country_groups = fct_reorder(country_groups, desc(n))),
+    user_functions = "functions/get_country_groups.R"
   ),
 
   rxp_r(
